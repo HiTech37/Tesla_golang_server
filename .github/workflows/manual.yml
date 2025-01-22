@@ -37,11 +37,14 @@ jobs:
           chmod 600 private_key
 
           # Copy the built executable to the server
-          scp -i private_key -o StrictHostKeyChecking=no tesla_server $SERVER_USER@$SERVER_IP:/usr/local/bin/tesla_server
+          scp -i private_key -o StrictHostKeyChecking=no tesla_server $SERVER_USER@$SERVER_IP:/tmp/tesla_server
 
           # Run commands on the CentOS server
           ssh -i private_key -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << EOF
+            sudo systemctl stop tesla_server || true
+            sudo mv /tmp/tesla_server /usr/local/bin/tesla_server
             sudo chmod +x /usr/local/bin/tesla_server
+            sudo systemctl daemon-reload
             sudo systemctl start tesla_server
             sudo systemctl enable tesla_server
           EOF
