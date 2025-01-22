@@ -1,0 +1,53 @@
+name: Deploy Go Application to CentOS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Go
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.23.4
+
+      # Step 3: Build the application
+      - name: Build the application
+        run: |
+          go build -o tesla_server main.go
+
+      # Step 4: Deploy to CentOS server
+      - name: Deploy and restart service on CentOS
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          # Write private key to a file
+          echo "${SSH_PRIVATE_KEY}" > private_key
+          chmod 600 private_key
+
+          # Copy the built executable to the server
+          scp -i private_key -o StrictHostKeyChecking=no tesla_server $SERVER_USER@$SERVER_IP:/tmp/tesla_server
+
+          # Run commands on the CentOS server
+          ssh -i private_key -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << EOF
+            sudo systemctl stop tesla_server || true
+            sudo mv /tmp/tesla_server /usr/local/bin/tesla_server
+            sudo chmod +x /usr/local/bin/tesla_server
+            sudo systemctl daemon-reload
+            sudo systemctl start tesla_server
+            sudo systemctl enable tesla_server
+          EOF
+
+          # Clean up the private key
+          rm private_key
