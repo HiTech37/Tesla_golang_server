@@ -35,26 +35,44 @@ jobs:
           # Write private key to a file
           echo "${SSH_PRIVATE_KEY}" > private_key
           chmod 600 private_key
-
+      
           # Copy the built executable to the server
           scp -i private_key -o StrictHostKeyChecking=no tesla_server $SERVER_USER@$SERVER_IP:/tmp/tesla_server
-
+      
           # Run commands on the CentOS server
           ssh -i private_key -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << EOF
-            # Check if the tesla_server service exists, then stop it if running
+            # Create the systemd service file if it doesn't exist
+            if [ ! -f /etc/systemd/system/tesla_server.service ]; then
+              echo "[Unit]
+              Description=Tesla Server
+              After=network.target
+      
+              [Service]
+              ExecStart=/usr/local/bin/tesla_server
+              WorkingDirectory=/home/ec2-user/tesla_server
+              User=ec2-user
+              Group=ec2-user
+              Restart=always
+      
+              [Install]
+              WantedBy=multi-user.target" | sudo tee /etc/systemd/system/tesla_server.service
+              sudo systemctl daemon-reload
+            fi
+      
+            # Stop the service if it exists
             if systemctl list-units --type=service | grep -q "tesla_server.service"; then
               sudo systemctl stop tesla_server
             fi
-
-            # Move the new executable to the correct location
-            sudo mv /tmp/tesla_server /home/ec2-user/tesla_server/tesla_server
+      
+            # Move the new executable and set permissions
+            sudo mv /tmp/tesla_server /usr/local/bin/tesla_server
             sudo chmod +x /usr/local/bin/tesla_server
-
-            # Reload systemd, start, and enable the service
+      
+            # Reload systemd, start and enable the service
             sudo systemctl daemon-reload
             sudo systemctl start tesla_server
             sudo systemctl enable tesla_server
           EOF
-
+      
           # Clean up the private key
           rm private_key
