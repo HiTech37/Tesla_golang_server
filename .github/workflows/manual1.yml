@@ -41,9 +41,16 @@ jobs:
 
           # Run commands on the CentOS server
           ssh -i private_key -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << EOF
-            sudo systemctl stop tesla_server || true
-            sudo mv /tmp/tesla_server /usr/local/bin/tesla_server
+            # Check if the tesla_server service exists, then stop it if running
+            if systemctl list-units --type=service | grep -q "tesla_server.service"; then
+              sudo systemctl stop tesla_server
+            fi
+
+            # Move the new executable to the correct location
+            sudo mv /tmp/tesla_server /home/ec2-user/tesla_server/tesla_server
             sudo chmod +x /usr/local/bin/tesla_server
+
+            # Reload systemd, start, and enable the service
             sudo systemctl daemon-reload
             sudo systemctl start tesla_server
             sudo systemctl enable tesla_server
