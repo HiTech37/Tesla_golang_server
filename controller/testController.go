@@ -2,10 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"path/filepath"
-	"strings"
+	"tesla_server/config"
 
 	"github.com/gin-gonic/gin"
 )
@@ -47,23 +44,6 @@ func GetDeviceAccesToken(c *gin.Context) {
 }
 
 func TestFunc(c *gin.Context) {
-	filepath, err := filepath.Abs("./config/cert.pem")
-
-	if err != nil {
-		fmt.Println("Error getting absolute path:", err)
-		return
-	}
-	content, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read the file", "details": err.Error()})
-		fmt.Println(err.Error())
-		return
-	}
-
-	formattedCertificate := strings.ReplaceAll(string(content), "\n", "\\n")
-
-	// Print in desired format
-	result := fmt.Sprintf("\"%s\"", formattedCertificate)
-	fmt.Println(result)
+	fmt.Println(config.GetTeslaCredential().Certificate)
 
 }
