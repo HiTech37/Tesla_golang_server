@@ -84,8 +84,10 @@ func ConnectDevice(c *gin.Context) {
 	resp, err := client.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg":   "failed to send HTTP request:",
-			"error": err,
+			"msg":      "failed to send HTTP request:",
+			"error":    err,
+			"jsonData": telemetryData,
+			"payload":  payload,
 		})
 		return
 	}
