@@ -2,9 +2,12 @@ package controller
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	config "tesla_server/config"
 
@@ -74,6 +77,22 @@ func SendCommandUnlock(accessToken string, vehicleTag string) (string, error) {
 		return "", err
 	}
 
+	caCert := []byte(config.GetTeslaCredential().Certificate) // Replace with your CA certificate
+	caCertPool := x509.NewCertPool()
+	if !caCertPool.AppendCertsFromPEM(caCert) {
+		log.Fatalf("Failed to append CA certificate")
+	}
+
+	// Create a custom TLS configuration
+	tlsConfig := &tls.Config{
+		RootCAs: caCertPool,
+	}
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
 	// Create HTTP request
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
@@ -85,7 +104,6 @@ func SendCommandUnlock(accessToken string, vehicleTag string) (string, error) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 
 	// Send the request
-	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error making request:", err)
