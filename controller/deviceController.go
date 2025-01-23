@@ -57,7 +57,7 @@ func ConnectDevice(c *gin.Context) {
 	telemetryData.Config.Fields.ChargeState.IntervalSeconds = 5
 	telemetryData.Config.CA = config.GetTeslaCredential().Certificate
 
-	telemetryData.Config.Hostname = "teslaapi.moovetrax.com"
+	telemetryData.Config.Hostname = config.GetTeslaCredential().ServerDomain
 	telemetryData.VINs = requestParams.Vins
 
 	payload, err := json.Marshal(telemetryData)
