@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
-	config "tesla_server/condig"
+	config "tesla_server/config"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +25,7 @@ func ConnectDevice(c *gin.Context) {
 		return
 	}
 
-	base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
+	base := config.GetTeslaCredential().ProxyUri
 	path := "/api/1/vehicles/fleet_telemetry_config"
 	url := fmt.Sprintf("%s%s", base, path)
 
@@ -38,10 +37,10 @@ func ConnectDevice(c *gin.Context) {
 			"exp":          1704067200,
 			"alert_types":  []string{"service"},
 			"fields": map[string]interface{}{
-				"<field_to_stream>": map[string]interface{}{
-					"resend_interval_seconds": 3600,
+				"Location": map[string]interface{}{
+					"resend_interval_seconds": 10,
 					"minimum_delta":           1,
-					"interval_seconds":        1800,
+					"interval_seconds":        5,
 				},
 			},
 			"ca":       config.GetTeslaCredential().Certificate,
@@ -54,6 +53,10 @@ func ConnectDevice(c *gin.Context) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println("Error marshaling JSON:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Error marshaling JSON:",
+			"error": err,
+		})
 		return
 	}
 
@@ -61,19 +64,26 @@ func ConnectDevice(c *gin.Context) {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Println("Error creating request:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Error creating request:",
+			"error": err,
+		})
 		return
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("TESLA_AUTH_TOKEN")))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
 
 	// Send the request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 
-	fmt.Println("resp=>", resp)
 	if err != nil {
 		fmt.Println("Error making request:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Error making request:",
+			"error": err,
+		})
 		return
 	}
 	defer resp.Body.Close()
@@ -82,7 +92,24 @@ func ConnectDevice(c *gin.Context) {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error reading response body:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Error reading response body:",
+			"error": err,
+		})
 		return
 	}
-	fmt.Println(string(body))
+	encoder := json.NewEncoder(c.Writer)
+	encoder.SetEscapeHTML(false)
+
+	response := gin.H{
+		"status": resp.StatusCode,
+		"data":   string(body),
+	}
+
+	if err := encoder.Encode(response); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to encode response",
+		})
+		return
+	}
 }

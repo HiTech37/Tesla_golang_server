@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	config "tesla_server/condig"
+	config "tesla_server/config"
 
 	"github.com/gin-gonic/gin"
 )

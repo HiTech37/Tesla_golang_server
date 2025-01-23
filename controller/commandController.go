@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	config "tesla_server/condig"
+	config "tesla_server/config"
 
 	"github.com/gin-gonic/gin"
 )

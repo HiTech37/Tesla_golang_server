@@ -30,7 +30,7 @@ func main() {
 	r.POST("/api/connectServer", controller.ConnectDevice)
 
 	// this apis are for testing
-	r.GET("api/test/accessToken", controller.GetDeviceAccesToken)
+	r.GET("api/test", controller.TestFunc)
 
 	// Listen on all network interfaces (allowing access from any IP)
 	if err := r.Run("0.0.0.0:8099"); err != nil {
