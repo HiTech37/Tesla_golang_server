@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
-	"strings"
 )
 
 type TeslaCredential struct {
@@ -56,9 +55,9 @@ func readCertFile() string {
 		return ""
 	}
 
-	formattedCertificate := strings.ReplaceAll(string(content), "\n", "\\n")
+	// formattedCertificate := strings.ReplaceAll(string(content), "\n", "\\n")
 
-	// Print in desired format
-	result := fmt.Sprintf("\"%s\"", formattedCertificate)
-	return result
+	// // Print in desired format
+	// result := fmt.Sprintf("\"%s\"", formattedCertificate)
+	return string(content)
 }
