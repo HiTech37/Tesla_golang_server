@@ -66,7 +66,7 @@ yLNK9r/++lSTTpZPEiEbBM+Lnyvh0FfQNZ8qImt3kRKcwqYyramlHXWU
 	teslaCredential.TlsCertificate = tlsCertificate
 	teslaCredential.ServerDomain = "t3slaapi.moovetrax.com"
 	teslaCredential.Port = 8443
-	teslaCredential.ProxyUri = "https://localhost:4443"
+	teslaCredential.ProxyUri = "https://t3slaapi.moovetrax.com:4443"
 
 	return &teslaCredential
 }
