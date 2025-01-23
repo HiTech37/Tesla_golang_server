@@ -2,14 +2,11 @@ package controller
 
 import (
 	"bytes"
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	config "tesla_server/config"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -69,27 +66,6 @@ func ConnectDevice(c *gin.Context) {
 		return
 	}
 
-	// Create a custom TLS configuration with CA cert
-	rootCAs := x509.NewCertPool()
-	if ok := rootCAs.AppendCertsFromPEM([]byte(config.GetTeslaCredential().TlsCertificate)); !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg":   "failed to append CA certificate",
-			"error": err,
-		})
-		return
-	}
-	tlsConfig := &tls.Config{
-		RootCAs: rootCAs,
-	}
-
-	// Create HTTPS client
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: tlsConfig,
-		},
-		Timeout: 10 * time.Second,
-	}
-
 	// Create HTTP request
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
@@ -104,7 +80,7 @@ func ConnectDevice(c *gin.Context) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
 
-	// Perform the request
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -114,6 +90,7 @@ func ConnectDevice(c *gin.Context) {
 		return
 	}
 	defer resp.Body.Close()
+
 	body, _ := ioutil.ReadAll(resp.Body)
 	c.JSON(http.StatusOK, gin.H{
 		"msg":  "failed to send HTTP request:",
