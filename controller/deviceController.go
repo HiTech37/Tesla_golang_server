@@ -2,9 +2,12 @@ package controller
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	config "tesla_server/config"
 
@@ -66,6 +69,23 @@ func ConnectDevice(c *gin.Context) {
 		return
 	}
 
+	caCert := []byte(config.GetTeslaCredential().Certificate) // Replace with your CA certificate
+	caCertPool := x509.NewCertPool()
+	if !caCertPool.AppendCertsFromPEM(caCert) {
+		log.Fatalf("Failed to append CA certificate")
+	}
+
+	// Create a custom TLS configuration
+	tlsConfig := &tls.Config{
+		RootCAs: caCertPool,
+	}
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+
 	// Create HTTP request
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
@@ -80,7 +100,6 @@ func ConnectDevice(c *gin.Context) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
 
-	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
