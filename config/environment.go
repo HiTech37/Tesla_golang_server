@@ -1,5 +1,9 @@
 package config
 
+import (
+	"strings"
+)
+
 type TeslaCredential struct {
 	ClientID       string
 	SecretKey      string
@@ -69,7 +73,7 @@ MrA=
 	teslaCredential.SecretKey = "ta-secret.TjmkFpMgD_pXgdBA"
 	teslaCredential.RootDomain = "https://moovetrax.com"
 	teslaCredential.DataScope = "openid vehicle_device_data vehicle_location offline_access vehicle_cmds vehicle_charging_cmds"
-	teslaCredential.Certificate = certificate
+	teslaCredential.Certificate = strings.ReplaceAll(certificate, "\n", "\\n")
 	teslaCredential.TlsCertificate = tlsCertificate
 	teslaCredential.ServerDomain = "t3slaapi.moovetrax.com"
 	teslaCredential.Port = 8443
@@ -78,7 +82,7 @@ MrA=
 	return &teslaCredential
 }
 
-// func ReadCertFile() string {
+// func FormatCertFile() string {
 // 	filepath, err := filepath.Abs("./config/cert.pem")
 
 // 	if err != nil {
