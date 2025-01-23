@@ -2,9 +2,12 @@ package controller
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	config "tesla_server/config"
 
@@ -15,6 +18,28 @@ type RequestConnectParams struct {
 	Vins         []string `json:"vins"`
 	AccessToken  string   `json:"accessToken"`
 	RefreshToken string   `json:"refreshToken"`
+}
+
+type Config struct {
+	Port   int    `json:"port"`
+	Exp    int    `json:"exp"`
+	Fields Fields `json:"fields"`
+	CA     string `json:"ca"`
+	Host   string `json:"hostname"`
+}
+
+type Fields struct {
+	Location    Interval `json:"Location"`
+	ChargeState Interval `json:"ChargeState"`
+}
+
+type Interval struct {
+	IntervalSeconds int `json:"interval_seconds"`
+}
+
+type TelemetryData struct {
+	Config Config   `json:"config"`
+	VINs   []string `json:"vins"`
 }
 
 func ConnectDevice(c *gin.Context) {
@@ -29,88 +54,110 @@ func ConnectDevice(c *gin.Context) {
 	path := "/api/1/vehicles/fleet_telemetry_config"
 	url := fmt.Sprintf("%s%s", base, path)
 
-	// Define the data structure
-	data := map[string]interface{}{
-		"config": map[string]interface{}{
-			"prefer_typed": true,
-			"port":         config.GetTeslaCredential().Port,
-			"exp":          1704067200,
-			"alert_types":  []string{"service"},
-			"fields": map[string]interface{}{
-				"Location": map[string]interface{}{
-					"resend_interval_seconds": 10,
-					"minimum_delta":           1,
-					"interval_seconds":        5,
-				},
-			},
-			"ca":       config.GetTeslaCredential().Certificate,
-			"hostname": config.GetTeslaCredential().ServerDomain,
-		},
-		"vins": requestParams.Vins,
+	// Construct headers
+	headers := map[string]string{
+		"Content-Type":  "application/json",
+		"Authorization": fmt.Sprintf("Bearer %s", requestParams.AccessToken),
 	}
 
-	// Marshal the data structure into JSON
+	// Construct data
+	data := TelemetryData{
+		Config: Config{
+			Port: 8443,
+			Exp:  1750000000,
+			Fields: Fields{
+				Location:    Interval{IntervalSeconds: 500},
+				ChargeState: Interval{IntervalSeconds: 500},
+			},
+			CA:   config.GetTeslaCredential().Certificate,
+			Host: "t3slaapi.moovetrax.com",
+		},
+		VINs: requestParams.Vins,
+	}
+
+	// Convert data to JSON
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
+		log.Fatalf("Failed to marshal JSON data: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg":   "Error marshaling JSON:",
+			"msg":   "Failed to marshal JSON data:",
 			"error": err,
 		})
 		return
 	}
 
-	// Create the HTTP request
+	// Set up TLS configuration
+	tlsConfig := &tls.Config{
+		RootCAs: nil, // Optionally load CA from caCert if needed
+	}
+
+	caCert := config.GetTeslaCredential().TlsCertificate
+	if caCert != "" {
+		// Create a new certificate pool
+		roots := x509.NewCertPool()
+
+		// Append the CA certificate to the certificate pool
+		if ok := roots.AppendCertsFromPEM([]byte(caCert)); !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"msg":   "Failed to parse CA certificate:",
+				"error": err,
+			})
+		}
+
+		// Assign the certificate pool to the TLS config
+		tlsConfig.RootCAs = roots
+	}
+	// Create HTTP client with custom TLS configuration
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+
+	// Create POST request
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
-		fmt.Println("Error creating request:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg":   "Error creating request:",
+			"msg":   "Failed to create request:",
 			"error": err,
 		})
-		return
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
+	// Add headers to the request
+	for key, value := range headers {
+		req.Header.Add(key, value)
+	}
 
-	// Send the request
-	client := &http.Client{}
+	// Send request
 	resp, err := client.Do(req)
-
 	if err != nil {
-		fmt.Println("Error making request:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg":   "Error making request:",
+			"msg":   "Failed to send request:",
 			"error": err,
-			"ca":    config.GetTeslaCredential().Certificate,
 		})
-		return
 	}
 	defer resp.Body.Close()
 
-	// Read and print the response
+	// Read response
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error reading response body:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg":   "Error reading response body:",
+			"msg":   "Failed to read response body:",
 			"error": err,
 		})
-		return
-	}
-	encoder := json.NewEncoder(c.Writer)
-	encoder.SetEscapeHTML(false)
-
-	response := gin.H{
-		"status": resp.StatusCode,
-		"data":   string(body),
 	}
 
-	if err := encoder.Encode(response); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to encode response",
+	if resp.StatusCode == http.StatusOK {
+		fmt.Println("Response:", string(body))
+		c.JSON(http.StatusOK, gin.H{
+			"msg":   "successfully:",
+			"error": string(body),
 		})
-		return
+
+	} else {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Failed to read response body:",
+			"error": string(body),
+		})
 	}
 }
