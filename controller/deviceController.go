@@ -83,6 +83,7 @@ func ConnectDevice(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg":   "Error making request:",
 			"error": err,
+			"ca":    config.GetTeslaCredential().Certificate,
 		})
 		return
 	}
