@@ -37,30 +37,7 @@ sudo systemctl stop tesla_server
 sudo firewall-cmd --zone=public --add-port=9443/tcp --permanent
 sudo firewall-cmd --reload
 
----- for setting proxy, can use nginx
-
-sudo nano /etc/nginx/conf.d/t3slaapi.moovetrax.com.conf
-
-server {
-    listen 9443 ssl;
-    server_name t3slaapi.moovetrax.com;
-
-    ssl_certificate /etc/ssl/t3sla/ssl-bundle.crt;
-    ssl_certificate_key /etc/ssl/t3sla/t3slaapi.moovetrax.com_key;
-    ssl_trusted_certificate /etc/ssl/t3sla/t3slaapi_moovetrax_com.ca-bundle;
-
-    location / {
-        # Removed all CORS related headers
-
-        # Proxy to backend
-        proxy_pass http://127.0.0.1:8099;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-
+-To proxy, can use nginx and it is set on fleet telemetry deployment
 
 sudo ss -tulnp
 
