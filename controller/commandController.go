@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	config "tesla_server/config"
 
 	"github.com/gin-gonic/gin"
@@ -52,7 +53,8 @@ func HandleCommand(c *gin.Context) {
 		return
 	}
 
-	if resData == `{"error":"token expired (401)"}\n` {
+	resData = strings.TrimSpace(resData)
+	if strings.Contains(resData, `"error":"token expired (401)"`) {
 		c.JSON(http.StatusOK, gin.H{
 			"accessToken":  requestParams.AccessToken,
 			"refreshToken": requestParams.RefreshToken,
