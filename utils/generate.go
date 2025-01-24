@@ -75,6 +75,7 @@ func RefreshAuthToken(refreshToken string, vin string) (TeslaAuthToken, error) {
 		return teslaAuthToken, err
 	}
 
+	fmt.Println("debug1=>", teslaAuthToken)
 	if teslaAuthToken.AccessToken != "" && teslaAuthToken.RefreshToken != "" && vin != "" {
 		err := model.UpdateDeviceAuthTokensbyVin(teslaAuthToken.AccessToken, teslaAuthToken.RefreshToken, vin)
 		if err != nil {

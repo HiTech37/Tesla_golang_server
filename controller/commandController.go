@@ -62,6 +62,7 @@ func HandleCommand(c *gin.Context) {
 	}
 
 	resData = strings.TrimSpace(resData)
+	fmt.Println("debug2=>", resData)
 	if strings.Contains(resData, `"error":"token expired (401)"`) {
 		var teslaAuthToken utils.TeslaAuthToken
 		teslaAuthToken, err := utils.RefreshAuthToken(requestParams.RefreshToken, requestParams.Vin)
@@ -72,6 +73,7 @@ func HandleCommand(c *gin.Context) {
 			return
 		}
 
+		fmt.Println("debug3=>", teslaAuthToken)
 		req, err := SendCommand(url, teslaAuthToken.AccessToken)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
