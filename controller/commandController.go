@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strings"
 	config "tesla_server/config"
+	"tesla_server/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -61,29 +62,27 @@ func HandleCommand(c *gin.Context) {
 	}
 
 	resData = strings.TrimSpace(resData)
-	fmt.Println("debug2=>", resData)
 	if strings.Contains(resData, `"error":"token expired (401)"`) {
-		// var teslaAuthToken utils.TeslaAuthToken
-		// teslaAuthToken, err := utils.RefreshAuthToken(requestParams.RefreshToken, requestParams.Vin)
-		// if err != nil {
-		// 	c.JSON(http.StatusInternalServerError, gin.H{
-		// 		"error": err.Error(),
-		// 	})
-		// 	return
-		// }
-
-		fmt.Println("debug3=>", resData)
-		// req, err := SendCommand(url, teslaAuthToken.AccessToken)
-		// if err != nil {
-		// 	c.JSON(http.StatusInternalServerError, gin.H{
-		// 		"error": err.Error(),
-		// 	})
-		// 	return
-		// }
-		// c.JSON(http.StatusOK, gin.H{
-		// 	"data": req,
-		// })
-		// return
+		var teslaAuthToken utils.TeslaAuthToken
+		teslaAuthToken, err := utils.RefreshAuthToken(requestParams.RefreshToken, requestParams.Vin)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		fmt.Println("debug2=>", teslaAuthToken)
+		req, err := SendCommand(url, teslaAuthToken.AccessToken)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"data": req,
+		})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
