@@ -56,16 +56,13 @@ func HandleCommand(c *gin.Context) {
 	resData = strings.TrimSpace(resData)
 	if strings.Contains(resData, `"error":"token expired (401)"`) {
 		c.JSON(http.StatusOK, gin.H{
-			"accessToken":  requestParams.AccessToken,
-			"refreshToken": requestParams.RefreshToken,
-			"msg":          "token updated",
+			"msg": "token updated",
 		})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"accessToken":  requestParams.AccessToken,
-		"refreshToken": requestParams.RefreshToken,
-		"data":         resData,
+		"data": resData,
 	})
 }
 
