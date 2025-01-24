@@ -45,15 +45,19 @@ func HandleCommand(c *gin.Context) {
 		resErr = fmt.Errorf("invalid command: %s", requestParams.Command)
 	}
 
-	fmt.Println(requestParams.Command)
-	fmt.Println(requestParams.Vin)
-	fmt.Println(resData)
-	fmt.Println(resErr)
 	if resErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": resErr.Error(),
 		})
 		return
+	}
+
+	if resData == `{"error":"token expired (401)"}\n` {
+		c.JSON(http.StatusOK, gin.H{
+			"accessToken":  requestParams.AccessToken,
+			"refreshToken": requestParams.RefreshToken,
+			"msg":          "token updated",
+		})
 	}
 
 	c.JSON(http.StatusOK, gin.H{
