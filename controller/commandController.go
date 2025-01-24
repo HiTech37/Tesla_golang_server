@@ -52,13 +52,33 @@ func HandleCommand(c *gin.Context) {
 		return
 	}
 
-	jsonData := map[string]interface{}{}
-	jsonStr, err := json.Marshal(jsonData)
+	resData, err := SendCommand(url, requestParams.AccessToken)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
+	}
+
+	resData = strings.TrimSpace(resData)
+	if strings.Contains(resData, `"error":"token expired (401)"`) {
+		c.JSON(http.StatusOK, gin.H{
+			"msg": "token updated",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": resData,
+	})
+}
+
+func SendCommand(url string, accessToken string) (string, error) {
+
+	jsonData := map[string]interface{}{}
+	jsonStr, err := json.Marshal(jsonData)
+	if err != nil {
+		return "", err
 	}
 
 	caCert := []byte(config.GetTeslaCredential().Certificate) // Replace with your CA certificate
@@ -80,43 +100,24 @@ func HandleCommand(c *gin.Context) {
 	// Create HTTP request
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
+		return "", err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 
 	// Send the request
 	resp, err := client.Do(req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	// Read and print the response
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
+		return "", err
 	}
 
-	resData := strings.TrimSpace(string(body))
-	if strings.Contains(resData, `"error":"token expired (401)"`) {
-		c.JSON(http.StatusOK, gin.H{
-			"msg": "token updated",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"data": resData,
-	})
+	return string(body), nil
 }
