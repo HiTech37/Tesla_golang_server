@@ -87,6 +87,7 @@ func HandleCommand(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": resData,
+		"test": "test",
 	})
 }
 
