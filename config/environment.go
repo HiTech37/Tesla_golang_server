@@ -1,5 +1,15 @@
 package config
 
+import (
+	"fmt"
+	"log"
+	"sync"
+
+	"github.com/joho/godotenv"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+)
+
 type TeslaCredential struct {
 	ClientID       string
 	SecretKey      string
@@ -22,6 +32,7 @@ func GetTeslaCredential() *TeslaCredential {
 		teslaCredential.CallbackUri = "http://localhost:3000/tesla_signup"
 	} else if environment == "test" {
 		teslaCredential.CallbackUri = "https://test.moovetrax.com/tesla_signup"
+
 	} else if environment == "prod" {
 		teslaCredential.CallbackUri = "https://moovetrax.com/tesla_signup"
 	}
@@ -71,21 +82,68 @@ yLNK9r/++lSTTpZPEiEbBM+Lnyvh0FfQNZ8qImt3kRKcwqYyramlHXWU
 	return &teslaCredential
 }
 
-// func FormatCertFile() string {
-// 	filepath, err := filepath.Abs("./config/cert.pem")
+// Connect MySql DB
 
-// 	if err != nil {
-// 		return ""
-// 	}
-// 	content, err := ioutil.ReadFile(filepath)
-// 	if err != nil {
-// 		fmt.Println(err.Error())
-// 		return ""
-// 	}
+var dbInstance *gorm.DB
+var once sync.Once
 
-// 	// formattedCertificate := strings.ReplaceAll(string(content), "\n", "\\n")
+func InitDb() (*gorm.DB, error) {
+	var err error
+	// Load environment variables once
+	err = godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %s", err)
+	}
 
-// 	// // Print in desired format
-// 	// result := fmt.Sprintf("\"%s\"", formattedCertificate)
-// 	return string(content)
-// }
+	// Initialize the DB connection only once
+	once.Do(func() {
+		dbInstance, err = connectDB()
+		if err != nil {
+			log.Fatalf("Failed to connect to database: %s", err)
+		}
+	})
+
+	return dbInstance, err
+}
+
+func connectDB() (*gorm.DB, error) {
+
+	DB_NAME := "gpsdb"
+	DB_HOST := ""
+	DB_USER := ""
+	DB_PASSWORD := ""
+	DB_PORT := "3306"
+
+	var db_connect = "test" // "local", "test", "prod"
+
+	switch db_connect {
+	case "local":
+		DB_HOST = "127.0.0.1"
+		DB_USER = "root"
+	case "test":
+		DB_HOST = "test.moovetrax.com"
+		DB_USER = "root"
+		DB_PASSWORD = "342A$$$SD1232"
+	case "prod":
+		DB_HOST = "moovetrax-1.ckmhdbxyagjk.us-east-1.rds.amazonaws.com"
+		DB_USER = "moovetrx"
+		DB_PASSWORD = "342A$$$SD1232"
+	}
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Local", DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, fmt.Errorf("error connecting to database: %w", err)
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("error getting raw database connection: %w", err)
+	}
+	err = sqlDB.Ping()
+	if err != nil {
+		return nil, fmt.Errorf("error pinging the database: %w", err)
+	}
+
+	return db, nil
+}
