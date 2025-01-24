@@ -5,7 +5,6 @@ import (
 	"log"
 	"sync"
 
-	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -89,12 +88,6 @@ var once sync.Once
 
 func InitDb() (*gorm.DB, error) {
 	var err error
-	// Load environment variables once
-	err = godotenv.Load(".env")
-	if err != nil {
-		log.Fatalf("Error loading .env file: %s", err)
-	}
-
 	// Initialize the DB connection only once
 	once.Do(func() {
 		dbInstance, err = connectDB()
