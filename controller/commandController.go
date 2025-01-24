@@ -30,54 +30,35 @@ func HandleCommand(c *gin.Context) {
 		return
 	}
 
-	var resData string
-	var resErr error
+	var url string
 
 	switch requestParams.Command {
 	case "Unlock":
-		resData, resErr = SendCommandUnlock(requestParams.AccessToken, requestParams.Vin)
+		url = config.GetTeslaCredential().ProxyUri + fmt.Sprintf("/api/1/vehicles/%s/command/door_unlock", requestParams.Vin)
 	case "Lock":
-		resData, resErr = SendCommandLock(requestParams.AccessToken, requestParams.Vin)
+		url = config.GetTeslaCredential().ProxyUri + fmt.Sprintf("/api/1/vehicles/%s/command/door_lock", requestParams.Vin)
 	case "Light":
-		resData, resErr = SendCommandLight(requestParams.AccessToken, requestParams.Vin)
+		url = config.GetTeslaCredential().ProxyUri + fmt.Sprintf("/api/1/vehicles/%s/command/flash_lights", requestParams.Vin)
 	case "HonkHorn":
-		resData, resErr = SendCommandHonkHorn(requestParams.AccessToken, requestParams.Vin)
+		url = config.GetTeslaCredential().ProxyUri + fmt.Sprintf("/api/1/vehicles/%s/command/honk_horn", requestParams.Vin)
 	default:
-		resErr = fmt.Errorf("invalid command: %s", requestParams.Command)
+		url = ""
 	}
 
-	if resErr != nil {
+	if url == "" {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": resErr.Error(),
+			"error": "Unsupported command!",
 		})
 		return
 	}
 
-	resData = strings.TrimSpace(resData)
-	if strings.Contains(resData, `"error":"token expired (401)"`) {
-		c.JSON(http.StatusOK, gin.H{
-			"msg": "token updated",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"data": resData,
-	})
-}
-
-func SendCommandUnlock(accessToken string, vehicleTag string) (string, error) {
-	// base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
-	base := config.GetTeslaCredential().ProxyUri
-	path := fmt.Sprintf("/api/1/vehicles/%s/command/door_unlock", vehicleTag)
-	url := base + path
-
-	// Prepare JSON payload
 	jsonData := map[string]interface{}{}
 	jsonStr, err := json.Marshal(jsonData)
 	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
-		return "", err
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
 	}
 
 	caCert := []byte(config.GetTeslaCredential().Certificate) // Replace with your CA certificate
@@ -99,142 +80,43 @@ func SendCommandUnlock(accessToken string, vehicleTag string) (string, error) {
 	// Create HTTP request
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return "", err
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
 
 	// Send the request
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error making request:", err)
-		return "", err
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
 	}
 	defer resp.Body.Close()
 
 	// Read and print the response
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return "", err
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
 	}
 
-	return string(body), nil
-}
-
-func SendCommandLock(accessToken string, vehicleTag string) (string, error) {
-	base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
-	path := fmt.Sprintf("/api/1/vehicles/%s/command/door_lock", vehicleTag) // Adjusting the path for locking the door
-	url := base + path
-
-	// Prepare JSON payload
-	jsonData := map[string]interface{}{}
-	jsonStr, err := json.Marshal(jsonData)
-	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
-		return "", err
+	resData := strings.TrimSpace(string(body))
+	if strings.Contains(resData, `"error":"token expired (401)"`) {
+		c.JSON(http.StatusOK, gin.H{
+			"msg": "token updated",
+		})
+		return
 	}
 
-	// Create HTTP request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return "", err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-
-	// Send the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error making request:", err)
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	// Read and return the response body
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return "", err
-	}
-
-	return string(body), nil
-}
-
-func SendCommandLight(accessToken string, vehicleTag string) (string, error) {
-	base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
-	path := fmt.Sprintf("/api/1/vehicles/%s/command/flash_lights", vehicleTag) // Corrected to use vehicleTag in the path
-	url := base + path
-
-	// Prepare JSON payload
-	jsonStr := `{}`
-
-	// Create HTTP request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(jsonStr)))
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return "", err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken)) // Using the accessToken parameter
-
-	// Send the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error making request:", err)
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	// Read and return the response body
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return "", err
-	}
-
-	return string(body), nil
-}
-
-func SendCommandHonkHorn(accessToken string, vehicleTag string) (string, error) {
-	base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
-	path := fmt.Sprintf("/api/1/vehicles/%s/command/honk_horn", vehicleTag) // Use vehicleTag in the path
-	url := base + path
-
-	// Prepare JSON payload
-	jsonStr := `{}`
-
-	// Create HTTP request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(jsonStr)))
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return "", err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken)) // Use the accessToken parameter
-
-	// Send the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error making request:", err)
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	// Read and return the response body
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return "", err
-	}
-	return string(body), nil
+	c.JSON(http.StatusOK, gin.H{
+		"data": resData,
+	})
 }
