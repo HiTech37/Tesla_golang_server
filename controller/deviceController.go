@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	config "tesla_server/config"
 
 	"github.com/gin-gonic/gin"
@@ -118,7 +119,51 @@ func ConnectDevice(c *gin.Context) {
 	json.Unmarshal([]byte(string(body)), &jsonData)
 
 	c.JSON(http.StatusOK, gin.H{
-		"msg":  "failed to send HTTP request:",
+		"msg":  "done!",
 		"data": jsonData,
 	})
+}
+
+func GetDeviceConfigStatus(c *gin.Context) {
+	var requestParams RequestConnectParams
+	if err := c.ShouldBindJSON(&requestParams); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	url := config.GetTeslaCredential().ProxyUri + fmt.Sprintf("/api/1/vehicles/%s/fleet_telemetry_config", requestParams.Vins[0])
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Error creating request:",
+			"error": err,
+		})
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("TESLA_AUTH_TOKEN")))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Error making request:",
+			"error": err,
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	var jsonData map[string]interface{}
+	json.Unmarshal([]byte(string(body)), &jsonData)
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg":  "done!",
+		"data": jsonData,
+	})
+
 }

@@ -28,6 +28,7 @@ func main() {
 	r.GET("/api/getAllVehichles", controller.GetAllVehicles)
 	r.POST("/api/sendCommand", controller.HandleCommand)
 	r.POST("/api/connectServer", controller.ConnectDevice)
+	r.POST("/api/getConfigStatus", controller.GetDeviceConfigStatus)
 
 	// this apis are for testing
 	r.GET("api/test", controller.TestFunc)
