@@ -114,7 +114,7 @@ func connectDB() (*gorm.DB, error) {
 		DB_HOST = "127.0.0.1"
 		DB_USER = "root"
 	case "test":
-		DB_HOST = "test.moovetrax.com"
+		DB_HOST = "172.31.42.68"
 		DB_USER = "root"
 		DB_PASSWORD = "342A$$$SD1232"
 	case "prod":
