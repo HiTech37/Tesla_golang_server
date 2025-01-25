@@ -166,3 +166,46 @@ func GetDeviceConfigStatus(c *gin.Context) {
 	})
 
 }
+
+func GetFleetTelemetryError(c *gin.Context) {
+	var requestParams RequestConnectParams
+	if err := c.ShouldBindJSON(&requestParams); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	url := "https://fleet-api.prd.na.vn.cloud.tesla.com/api/1/partner_accounts/fleet_telemetry_errors"
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Error creating request:",
+			"error": err,
+		})
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Error making request:",
+			"error": err,
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	var jsonData map[string]interface{}
+	json.Unmarshal([]byte(string(body)), &jsonData)
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg":  "done!",
+		"data": jsonData,
+	})
+}
