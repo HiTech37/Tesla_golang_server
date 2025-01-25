@@ -131,7 +131,7 @@ func GetDeviceConfigStatus(c *gin.Context) {
 		return
 	}
 
-	url := config.GetTeslaCredential().ProxyUri + fmt.Sprintf("/api/1/vehicles/%s/fleet_telemetry_config", requestParams.Vins[0])
+	url := fmt.Sprintf("https://fleet-api.prd.na.vn.cloud.tesla.com/api/1/vehicles/%s/fleet_telemetry_config", requestParams.Vins[0])
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
