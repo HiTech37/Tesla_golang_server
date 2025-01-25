@@ -123,7 +123,7 @@ func connectDB() (*gorm.DB, error) {
 		DB_PASSWORD = "342A$$$SD1232"
 	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&tls=true", DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Local", DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to database: %w", err)
