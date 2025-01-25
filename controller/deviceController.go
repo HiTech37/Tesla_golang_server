@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	config "tesla_server/config"
 
 	"github.com/gin-gonic/gin"
@@ -144,7 +143,7 @@ func GetDeviceConfigStatus(c *gin.Context) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("TESLA_AUTH_TOKEN")))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
