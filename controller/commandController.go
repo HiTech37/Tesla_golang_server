@@ -71,7 +71,6 @@ func HandleCommand(c *gin.Context) {
 			})
 			return
 		}
-		fmt.Println("debug2=>", teslaAuthToken)
 		req, err := SendCommand(url, teslaAuthToken.AccessToken)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{

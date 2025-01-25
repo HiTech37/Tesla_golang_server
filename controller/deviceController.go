@@ -113,8 +113,12 @@ func ConnectDevice(c *gin.Context) {
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
+
+	var jsonData map[string]interface{}
+	json.Unmarshal([]byte(string(body)), &jsonData)
+
 	c.JSON(http.StatusOK, gin.H{
 		"msg":  "failed to send HTTP request:",
-		"data": string(body),
+		"data": jsonData,
 	})
 }
