@@ -222,3 +222,58 @@ func GetFleetTelemetryError(c *gin.Context) {
 		"data": jsonData,
 	})
 }
+
+func GetFleetStatus(c *gin.Context) {
+	var requestParams RequestConnectParams
+	if err := c.ShouldBindJSON(&requestParams); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	base := config.GetTeslaCredential().ProxyUri
+	path := "/api/1/vehicles/fleet_status"
+	url := fmt.Sprintf("%s%s", base, path)
+
+	// Build the JSON payload dynamically using the VINs from requestParams
+	payload := map[string]interface{}{
+		"vins": requestParams.Vins, // Assuming `Vins` is an array of strings in `requestParams`
+	}
+
+	jsonStr, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Println("Error marshalling JSON:", err)
+		return
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error making request:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+
+	var jsonData map[string]interface{}
+	json.Unmarshal([]byte(string(body)), &jsonData)
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg":  "done!",
+		"data": jsonData,
+	})
+}
