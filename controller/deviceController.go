@@ -69,15 +69,25 @@ func ConnectDevice(c *gin.Context) {
 		return
 	}
 
-	caCert := []byte(config.GetTeslaCredential().Certificate) // Replace with your CA certificate
+	cert, err := tls.X509KeyPair(
+		[]byte(config.GetTeslaCredential().ClientCert), // Your client certificate
+		[]byte(config.GetTeslaCredential().ClientKey),  // Your client private key
+	)
+
+	if err != nil {
+		log.Fatalf("Failed to load client certificate: %v", err)
+	}
+
+	caCert := []byte(config.GetTeslaCredential().Certificate) // CA certificate
 	caCertPool := x509.NewCertPool()
 	if !caCertPool.AppendCertsFromPEM(caCert) {
 		log.Fatalf("Failed to append CA certificate")
 	}
 
-	// Create a custom TLS configuration
+	// Create a custom TLS configuration with client certificate
 	tlsConfig := &tls.Config{
-		RootCAs: caCertPool,
+		Certificates: []tls.Certificate{cert}, // Include client certificate
+		RootCAs:      caCertPool,              // Include CA certificate
 	}
 
 	client := &http.Client{

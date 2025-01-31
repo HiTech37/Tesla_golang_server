@@ -20,6 +20,8 @@ type TeslaCredential struct {
 	ProxyUri       string
 	Port           int
 	TlsCertificate string
+	ClientCert     string
+	ClientKey      string
 }
 
 func GetTeslaCredential() *TeslaCredential {
@@ -68,6 +70,31 @@ gYgCQgGH92HrWa16wd8Dk8eMK/IZiHlAQn5MXGQP/Bua1+SaCOe6qUg2VviPtDIn
 yLNK9r/++lSTTpZPEiEbBM+Lnyvh0FfQNZ8qImt3kRKcwqYyramlHXWU
 -----END CERTIFICATE-----`
 
+	var clientCert = `-----BEGIN CERTIFICATE-----
+MIICZjCCAcegAwIBAgIUNnV3TC4SvTTm4IqH/tPtq7K75ucwCgYIKoZIzj0EAwIw
+ITEfMB0GA1UEAwwWdDNzbGFhcGkubW9vdmV0cmF4LmNvbTAeFw0yNTAxMjMyMzIx
+MzhaFw0zNTAxMjEyMzIxMzhaMCExHzAdBgNVBAMMFnQzc2xhYXBpLm1vb3ZldHJh
+eC5jb20wgZswEAYHKoZIzj0CAQYFK4EEACMDgYYABAG1cIOI/+9deCugmK9niPuG
+ie8+7WOvd7LkIPQH4mnXy1IMXq55uJgf5pCdSi/vuG6ghs+vY9WkRL0HzmOApN4y
+cABQw0372WNiHna+NrJgw7P1Qj8tXW1prdRY8eiGrd3A/BHyFM6C/ql/KzBCkSHc
+g2GhxOkvu6tIqAwxTddCjvVbq6OBmTCBljAdBgNVHQ4EFgQU55WltTHc8PiiyYHw
+7oUArgxIihMwHwYDVR0jBBgwFoAU55WltTHc8PiiyYHw7oUArgxIihMwDwYDVR0T
+AQH/BAUwAwEB/zAhBgNVHREEGjAYghZ0M3NsYWFwaS5tb292ZXRyYXguY29tMBMG
+A1UdJQQMMAoGCCsGAQUFBwMBMAsGA1UdDwQEAwICjDAKBggqhkjOPQQDAgOBjAAw
+gYgCQgFWqLABpuCqMN9k/iIJtO5nSl67Xwa3YPcgaeUj06Kf9GxHO4D08lbCwoDb
+3G14cWWumRqzpE6Kvkjpo6ziULMlnwJCAPy+IWGk5syF77MWz4UbEznVQZU2AWtX
+M1PItUSAXh5yYEgQdBgYag7pdkesyoL9SmfayRR9ZqQXjJe14sxpha94
+-----END CERTIFICATE-----`
+
+	var clientKey = `-----BEGIN PRIVATE KEY-----
+MIHuAgEAMBAGByqGSM49AgEGBSuBBAAjBIHWMIHTAgEBBEIBknLkXISDbyxWPceT
+mlcZtpTAU6LRWmnCw/5y0kBzpRv+CAPOV+nisPhKMUXgMmlY0RvuW1RD+SCfLVOP
+rZYBe9ChgYkDgYYABAG1cIOI/+9deCugmK9niPuGie8+7WOvd7LkIPQH4mnXy1IM
+Xq55uJgf5pCdSi/vuG6ghs+vY9WkRL0HzmOApN4ycABQw0372WNiHna+NrJgw7P1
+Qj8tXW1prdRY8eiGrd3A/BHyFM6C/ql/KzBCkSHcg2GhxOkvu6tIqAwxTddCjvVb
+qw==
+-----END PRIVATE KEY-----`
+
 	teslaCredential.ClientID = "69e55814-1679-46d3-a3b6-ac713f77f287"
 	teslaCredential.SecretKey = "ta-secret.TjmkFpMgD_pXgdBA"
 	teslaCredential.RootDomain = "https://moovetrax.com"
@@ -77,6 +104,8 @@ yLNK9r/++lSTTpZPEiEbBM+Lnyvh0FfQNZ8qImt3kRKcwqYyramlHXWU
 	teslaCredential.ServerDomain = "t3slaapi.moovetrax.com"
 	teslaCredential.Port = 8443
 	teslaCredential.ProxyUri = "https://t3slaapi.moovetrax.com:4443"
+	teslaCredential.ClientCert = clientCert
+	teslaCredential.ClientKey = clientKey
 
 	return &teslaCredential
 }
