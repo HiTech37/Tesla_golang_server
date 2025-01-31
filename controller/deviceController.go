@@ -131,7 +131,8 @@ func GetDeviceConfigStatus(c *gin.Context) {
 		return
 	}
 
-	url := fmt.Sprintf("https://fleet-api.prd.na.vn.cloud.tesla.com/api/1/vehicles/%s/fleet_telemetry_config", requestParams.Vins[0])
+	base := config.GetTeslaCredential().ProxyUri
+	url := fmt.Sprintf("%s/api/1/vehicles/%s/fleet_telemetry_config", base, requestParams.Vins[0])
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -174,8 +175,8 @@ func GetFleetTelemetryError(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	url := "https://fleet-api.prd.na.vn.cloud.tesla.com/api/1/partner_accounts/fleet_telemetry_errors"
+	base := config.GetTeslaCredential().ProxyUri
+	url := fmt.Sprintf("%s/api/1/partner_accounts/fleet_telemetry_errors", base)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
