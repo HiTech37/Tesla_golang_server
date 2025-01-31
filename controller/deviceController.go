@@ -252,10 +252,36 @@ func GetFleetStatus(c *gin.Context) {
 		return
 	}
 
+	cert, err := tls.X509KeyPair(
+		[]byte(config.GetTeslaCredential().ClientCert), // Your client certificate
+		[]byte(config.GetTeslaCredential().ClientKey),  // Your client private key
+	)
+
+	if err != nil {
+		log.Fatalf("Failed to load client certificate: %v", err)
+	}
+
+	caCert := []byte(config.GetTeslaCredential().Certificate) // CA certificate
+	caCertPool := x509.NewCertPool()
+	if !caCertPool.AppendCertsFromPEM(caCert) {
+		log.Fatalf("Failed to append CA certificate")
+	}
+
+	// Create a custom TLS configuration with client certificate
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cert}, // Include client certificate
+		RootCAs:      caCertPool,              // Include CA certificate
+	}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+		Timeout: 30 * time.Second,
+	}
+
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
 
-	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error making request:", err)
