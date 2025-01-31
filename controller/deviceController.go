@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	config "tesla_server/config"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -53,8 +54,8 @@ func ConnectDevice(c *gin.Context) {
 	telemetryData := TelemetryRequest{}
 	telemetryData.Config.Port = 8443
 	telemetryData.Config.Exp = 1750000000
-	telemetryData.Config.Fields.Location.IntervalSeconds = 5
-	telemetryData.Config.Fields.ChargeState.IntervalSeconds = 5
+	telemetryData.Config.Fields.Location.IntervalSeconds = 500
+	telemetryData.Config.Fields.ChargeState.IntervalSeconds = 500
 	telemetryData.Config.CA = config.GetTeslaCredential().Certificate
 
 	telemetryData.Config.Hostname = config.GetTeslaCredential().ServerDomain
@@ -94,6 +95,7 @@ func ConnectDevice(c *gin.Context) {
 		Transport: &http.Transport{
 			TLSClientConfig: tlsConfig,
 		},
+		Timeout: 30 * time.Second,
 	}
 
 	// Create HTTP request
