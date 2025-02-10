@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -136,6 +137,23 @@ type TelemetryRequest struct {
 // 	})
 // }
 
+func newHTTPClient(certPEM string) (*http.Client, error) {
+	// Create a new CertPool.
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+		return nil, errors.New("failed to append certificate")
+	}
+
+	// Create a custom Transport with TLS configuration.
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			RootCAs: certPool,
+		},
+	}
+
+	return &http.Client{Transport: tr}, nil
+}
+
 func ConnectDevice(c *gin.Context) {
 	var requestParams RequestConnectParams
 	if err := c.ShouldBindJSON(&requestParams); err != nil {
@@ -167,6 +185,13 @@ func ConnectDevice(c *gin.Context) {
 		return
 	}
 
+	certPEM := config.GetTeslaCredential().Certificate
+	client, err := newHTTPClient(certPEM)
+	if err != nil {
+		log.Printf("Error setting up HTTP client: %v", err)
+		return
+	}
+
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -179,7 +204,6 @@ func ConnectDevice(c *gin.Context) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
 
-	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

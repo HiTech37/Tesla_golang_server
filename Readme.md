@@ -123,6 +123,11 @@ certbot certonly -d teslaapi.moovetrax.com --csr teslaapi.moovetrax.com.csr
 
 echo | openssl s_client -connect teslaapi.moovetrax.com:8443 -servername teslaapi.moovetrax.com -showcerts 2>/dev/null | awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/ {print}' > ca_cert.pem
 
-
-
-openssl s_client -connect <FLEET_TELEMETRY_HOST>:<PORT> -showcerts
+openssl req -x509 -nodes -newkey ec \
+    -pkeyopt ec_paramgen_curve:secp521r1 \
+    -pkeyopt ec_param_enc:named_curve  \
+    -subj '/CN=teslaapi.moovetrax.com' \
+    -keyout key.pem -out cert.pem -sha256 -days 3650 \
+    -addext "subjectAltName = DNS:teslaapi.moovetrax.com" \
+    -addext "extendedKeyUsage = serverAuth" \
+    -addext "keyUsage = digitalSignature, keyCertSign, keyAgreement"

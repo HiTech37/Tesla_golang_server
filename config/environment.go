@@ -27,7 +27,7 @@ type TeslaCredential struct {
 func GetTeslaCredential() *TeslaCredential {
 	var teslaCredential TeslaCredential
 
-	var environment = "test" // "local", "test", "prod"
+	var environment = "prod" // "local", "test", "prod"
 
 	if environment == "local" {
 		teslaCredential.CallbackUri = "http://localhost:3000/tesla_signup"
