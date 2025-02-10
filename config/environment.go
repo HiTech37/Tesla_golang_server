@@ -101,9 +101,9 @@ qw==
 	teslaCredential.DataScope = "openid vehicle_device_data vehicle_location offline_access vehicle_cmds vehicle_charging_cmds"
 	teslaCredential.Certificate = certificate
 	teslaCredential.TlsCertificate = tlsCertificate
-	teslaCredential.ServerDomain = "t3slaapi.moovetrax.com"
+	teslaCredential.ServerDomain = "teslaapi.moovetrax.com"
 	teslaCredential.Port = 8443
-	teslaCredential.ProxyUri = "https://t3slaapi.moovetrax.com:4443"
+	teslaCredential.ProxyUri = "https://teslaapi.moovetrax.com:4443"
 	teslaCredential.ClientCert = clientCert
 	teslaCredential.ClientKey = clientKey
 

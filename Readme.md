@@ -106,3 +106,15 @@ curl --cacert cert.pem \
 }
 
 openssl req -out t3slaapi.moovetrax.com.csr -key private-key.pem -subj /CN=t3slaapi.moovetrax.com/ -new
+
+
+
+sudo yum install certbot python3-certbot-nginx -y
+
+sudo certbot --nginx -d teslaapi.moovetrax.com
+
+sudo systemctl enable certbot-renew.timer
+
+sudo systemctl start certbot-renew.timer
+
+sudo certbot renew --dry-run
