@@ -76,7 +76,8 @@ func ConnectDevice(c *gin.Context) {
 	)
 
 	if err != nil {
-		log.Fatalf("Failed to load client certificate: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to load client certificate", "error": err.Error()})
+		return
 	}
 
 	caCert := []byte(config.GetTeslaCredential().Certificate) // CA certificate
