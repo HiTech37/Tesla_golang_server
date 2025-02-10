@@ -118,3 +118,7 @@ sudo systemctl enable certbot-renew.timer
 sudo systemctl start certbot-renew.timer
 
 sudo certbot renew --dry-run
+
+certbot certonly -d teslaapi.moovetrax.com --csr teslaapi.moovetrax.com.csr
+
+openssl s_client -connect teslaapi.moovetrax.com:8443 -servername teslaapi.moovetrax.com -showcerts
