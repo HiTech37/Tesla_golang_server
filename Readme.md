@@ -121,4 +121,8 @@ sudo certbot renew --dry-run
 
 certbot certonly -d teslaapi.moovetrax.com --csr teslaapi.moovetrax.com.csr
 
-openssl s_client -connect teslaapi.moovetrax.com:8443 -servername teslaapi.moovetrax.com -showcerts
+echo | openssl s_client -connect teslaapi.moovetrax.com:8443 -servername teslaapi.moovetrax.com -showcerts 2>/dev/null | awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/ {print}' > ca_cert.pem
+
+
+
+openssl s_client -connect <FLEET_TELEMETRY_HOST>:<PORT> -showcerts
