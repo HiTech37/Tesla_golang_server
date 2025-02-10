@@ -53,7 +53,7 @@ func ConnectDevice(c *gin.Context) {
 	path := "/api/1/vehicles/fleet_telemetry_config"
 	url := fmt.Sprintf("%s%s", base, path)
 
-	fieldToStream := "speed" // Replace with any dynamic field name
+	fieldToStream := "Location" // Replace with any dynamic field name
 
 	// Create your telemetry request struct with the desired values.
 	telemetryData := TelemetryRequest{
