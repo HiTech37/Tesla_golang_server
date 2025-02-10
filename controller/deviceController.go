@@ -60,7 +60,7 @@ func ConnectDevice(c *gin.Context) {
 		Config: Config{
 			PreferTyped: true,
 			Port:        4443,
-			Exp:         1704067200,
+			Exp:         1770670000,
 			AlertTypes:  []string{"service"},
 			Fields: map[string]FieldConfig{
 				fieldToStream: {
