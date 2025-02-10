@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -137,23 +136,6 @@ type TelemetryRequest struct {
 // 	})
 // }
 
-func newHTTPClient(certPEM string) (*http.Client, error) {
-	// Create a new CertPool.
-	certPool := x509.NewCertPool()
-	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
-		return nil, errors.New("failed to append certificate")
-	}
-
-	// Create a custom Transport with TLS configuration.
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			RootCAs: certPool,
-		},
-	}
-
-	return &http.Client{Transport: tr}, nil
-}
-
 func ConnectDevice(c *gin.Context) {
 	var requestParams RequestConnectParams
 	if err := c.ShouldBindJSON(&requestParams); err != nil {
@@ -186,10 +168,25 @@ func ConnectDevice(c *gin.Context) {
 	}
 
 	certPEM := config.GetTeslaCredential().Certificate
-	client, err := newHTTPClient(certPEM)
-	if err != nil {
-		log.Printf("Error setting up HTTP client: %v", err)
-		return
+
+	// Create a certificate pool and add your certificate.
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+		log.Fatal("Failed to append certificate")
+	}
+
+	// Create a custom TLS configuration that uses the certificate pool.
+	tlsConfig := &tls.Config{
+		RootCAs: certPool,
+		// Optionally, if you need to specify the expected server name explicitly:
+		ServerName: "teslaapi.moovetrax.com",
+	}
+
+	// Create an HTTP client that uses this TLS configuration.
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
