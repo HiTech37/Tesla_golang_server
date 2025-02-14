@@ -130,4 +130,4 @@ openssl req -x509 -nodes -newkey ec \
     -keyout key.pem -out cert.pem -sha256 -days 3650 \
     -addext "subjectAltName = DNS:teslaapi.moovetrax.com" \
     -addext "extendedKeyUsage = serverAuth" \
-    -addext "keyUsage = digitalSignature, keyCertSign, keyAgreement"
+    -addext "keyUsage = digitalSignature, keyCertSign, keyAgreement" 
