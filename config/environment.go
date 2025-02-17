@@ -52,16 +52,16 @@ VR0lBAwwCgYIKwYBBQUHAwEwCwYDVR0PBAQDAgKMMAoGCCqGSM49BAMCA4GLADCB
 hwJBQ8klYfiJSc2zb8hW9DgnkY1BeZQAUETqVSvxzqyOf2vIb3NXN8RSzJzDPVWt
 j/O6Ztkt9qwA6CEjJRZWLOW1JsECQgHFjKUbZwTlFvJaFvYmjZbisi6RDqerI/V2
 XaXV6SwBQ9IM0U1zgXCL4lf6cVUPaoTL8c/BzKAOyJ7RF/YPlXeoYg==
------END CERTIFICATE-----`
+-----END CERTIFICATE-----` // cert.pem
 
-	teslaCredential.ClientID = "69e55814-1679-46d3-a3b6-ac713f77f287"
-	teslaCredential.SecretKey = "ta-secret.TjmkFpMgD_pXgdBA"
+	teslaCredential.ClientID = "60d97918-9b6b-4c92-88e3-ff9e9403239f"
+	teslaCredential.SecretKey = "ta-secret.8p8Jz&Y^%n9FCCeE"
 	teslaCredential.RootDomain = "https://moovetrax.com"
 	teslaCredential.DataScope = "openid vehicle_device_data vehicle_location offline_access vehicle_cmds vehicle_charging_cmds"
 	teslaCredential.Certificate = certificate
-	teslaCredential.ServerDomain = "teslaapi.moovetrax.com"
+	teslaCredential.ServerDomain = "fleetapi.moovetrax.com"
 	teslaCredential.Port = 8443
-	teslaCredential.ProxyUri = "https://teslaapi.moovetrax.com:4443"
+	teslaCredential.ProxyUri = "https://fleetapi.moovetrax.com:4443"
 
 	return &teslaCredential
 }

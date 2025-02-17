@@ -96,7 +96,7 @@ func ConnectDevice(c *gin.Context) {
 	tlsConfig := &tls.Config{
 		RootCAs: certPool,
 		// Optionally, if you need to specify the expected server name explicitly:
-		ServerName: "teslaapi.moovetrax.com",
+		ServerName: "fleetapi.moovetrax.com",
 	}
 
 	// Create an HTTP client that uses this TLS configuration.
