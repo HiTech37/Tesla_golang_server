@@ -142,3 +142,8 @@ curl --cacert cert.pem \
 --header "Authorization: Bearer $TESLA_AUTH_TOKEN" \
 "https://fleetapi.moovetrax.com:4443/api/1/vehicles/$VIN/vehicle_data" \
 | jq -r .
+
+curl -v --cacert /etc/cert/moovetrax-fullchain.crt \
+    --cert cert.pem \
+    --key key.pem \
+    https://fleetapi.moovetrax.com:8443

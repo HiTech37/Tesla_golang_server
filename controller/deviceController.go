@@ -159,10 +159,31 @@ func GetDeviceConfigStatus(c *gin.Context) {
 		return
 	}
 
+	certPEM := config.GetTeslaCredential().Certificate
+
+	// Create a certificate pool and add your certificate.
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+		log.Fatal("Failed to append certificate")
+	}
+
+	// Create a custom TLS configuration that uses the certificate pool.
+	tlsConfig := &tls.Config{
+		RootCAs: certPool,
+		// Optionally, if you need to specify the expected server name explicitly:
+		ServerName: config.GetTeslaCredential().ServerDomain,
+	}
+
+	// Create an HTTP client that uses this TLS configuration.
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
 
-	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
