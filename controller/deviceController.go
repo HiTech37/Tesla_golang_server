@@ -59,14 +59,14 @@ func ConnectDevice(c *gin.Context) {
 	telemetryData := TelemetryRequest{
 		Config: Config{
 			PreferTyped: true,
-			Port:        4443,
+			Port:        443,
 			Exp:         1770670000,
 			AlertTypes:  []string{"service"},
 			Fields: map[string]FieldConfig{
 				fieldToStream: {
 					ResendIntervalSeconds: 3600,
 					MinimumDelta:          1,
-					IntervalSeconds:       1800,
+					IntervalSeconds:       60,
 				},
 			},
 			CA:       config.GetTeslaCredential().Certificate,
