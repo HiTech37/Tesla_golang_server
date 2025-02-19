@@ -96,7 +96,7 @@ func ConnectDevice(c *gin.Context) {
 	tlsConfig := &tls.Config{
 		RootCAs: certPool,
 		// Optionally, if you need to specify the expected server name explicitly:
-		ServerName: "fleetapi.moovetrax.com",
+		ServerName: config.GetTeslaCredential().ServerDomain,
 	}
 
 	// Create an HTTP client that uses this TLS configuration.
@@ -328,9 +328,8 @@ func GetDeviceLiveData(c *gin.Context) {
 
 	// Create a custom TLS configuration that uses the certificate pool.
 	tlsConfig := &tls.Config{
-		RootCAs: certPool,
-		// Optionally, if you need to specify the expected server name explicitly:
-		ServerName: "fleetapi.moovetrax.com",
+		RootCAs:    certPool,
+		ServerName: config.GetTeslaCredential().ServerDomain,
 	}
 
 	// Create an HTTP client that uses this TLS configuration.
