@@ -31,6 +31,7 @@ func main() {
 	r.POST("/api/getConfigStatus", controller.GetDeviceConfigStatus)
 	r.POST("/api/getFleetTelemetryError", controller.GetFleetTelemetryError)
 	r.POST("/api/getFleetStatus", controller.GetFleetStatus)
+	r.POST("/api/getDeviceLiveData", controller.GetDeviceLiveData)
 
 	// this apis are for testing
 	r.GET("api/test", controller.TestFunc)

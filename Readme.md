@@ -131,3 +131,14 @@ openssl req -x509 -nodes -newkey ec \
     -addext "subjectAltName = DNS:fleetapi.moovetrax.com" \
     -addext "extendedKeyUsage = serverAuth" \
     -addext "keyUsage = digitalSignature, keyCertSign, keyAgreement" 
+
+
+openssl req -out fleetapi.moovetrax.com.csr -key private_key.pem -subj /CN=fleetapi.moovetrax.com/ -new
+
+-----BEGIN CERTIFICATE REQUEST-----
+MIHbMIGDAgEAMCExHzAdBgNVBAMMFmZsZWV0YXBpLm1vb3ZldHJheC5jb20wWTAT
+BgcqhkjOPQIBBggqhkjOPQMBBwNCAAR/yoddY25MDO8Ilmes7Fj0HnKBprCdtdfd
+u071cRxMBzk04evq/FxyJWHv6jucID9v7EHnV4hK4EyDE9+D6J8RoAAwCgYIKoZI
+zj0EAwIDRwAwRAIgBF19zGVsqVNmCsd9xZBDa3sAJlJyVZtp34eLo9NU1+QCID6N
+qEH8wV3eZQpoYh31vZaE117Lb4lw73pm27FAHywq
+-----END CERTIFICATE REQUEST-----

@@ -307,3 +307,65 @@ func GetFleetStatus(c *gin.Context) {
 		"data": jsonData,
 	})
 }
+
+func GetDeviceLiveData(c *gin.Context) {
+	var requestParams RequestConnectParams
+	if err := c.ShouldBindJSON(&requestParams); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	base := config.GetTeslaCredential().ProxyUri
+	url := fmt.Sprintf(base+"/api/1/vehicles/%s/vehicle_data", requestParams.Vins[0])
+
+	certPEM := config.GetTeslaCredential().Certificate
+
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+		log.Fatal("Failed to append certificate")
+	}
+
+	// Create a custom TLS configuration that uses the certificate pool.
+	tlsConfig := &tls.Config{
+		RootCAs: certPool,
+		// Optionally, if you need to specify the expected server name explicitly:
+		ServerName: "fleetapi.moovetrax.com",
+	}
+
+	// Create an HTTP client that uses this TLS configuration.
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+requestParams.AccessToken)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Error making request:",
+			"error": err,
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	var jsonData map[string]interface{}
+	json.Unmarshal([]byte(string(body)), &jsonData)
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg":  "done!",
+		"data": jsonData,
+	})
+}
