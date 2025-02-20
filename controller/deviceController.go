@@ -49,7 +49,7 @@ func ConnectDevice(c *gin.Context) {
 		return
 	}
 
-	base := config.GetTeslaCredential().ProxyUri
+	base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
 	path := "/api/1/vehicles/fleet_telemetry_config"
 	url := fmt.Sprintf("%s%s", base, path)
 
