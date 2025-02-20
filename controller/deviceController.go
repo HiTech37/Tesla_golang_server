@@ -58,7 +58,7 @@ func ConnectDevice(c *gin.Context) {
 	telemetryData := TelemetryRequest{
 		Config: Config{
 			PreferTyped: true,
-			Port:        5443,
+			Port:        4443,
 			Exp:         1770670000,
 			AlertTypes:  []string{"service"},
 			Fields: map[string]FieldConfig{
