@@ -41,101 +41,7 @@ type TelemetryRequest struct {
 	Vins   []string `json:"vins"`
 }
 
-// func ConnectDevice(c *gin.Context) {
-// 	var requestParams RequestConnectParams
-// 	if err := c.ShouldBindJSON(&requestParams); err != nil {
-// 		fmt.Println(err.Error())
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
-// 	path := "/api/1/vehicles/fleet_telemetry_config"
-// 	url := fmt.Sprintf("%s%s", base, path)
-
-// 	fieldToStream := "Location"
-
-// 	telemetryData := TelemetryRequest{
-// 		Config: Config{
-// 			PreferTyped: true,
-// 			Port:        443,
-// 			Exp:         1770670000,
-// 			AlertTypes:  []string{"service"},
-// 			Fields: map[string]FieldConfig{
-// 				fieldToStream: {
-// 					ResendIntervalSeconds: 3600,
-// 					MinimumDelta:          1,
-// 					IntervalSeconds:       60,
-// 				},
-// 			},
-// 			CA:       config.GetTeslaCredential().Certificate,
-// 			Hostname: config.GetTeslaCredential().ServerDomain,
-// 		},
-// 		Vins: requestParams.Vins,
-// 	}
-
-// 	payload, err := json.Marshal(telemetryData)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{
-// 			"msg":   "Failed to marshal JSON data:",
-// 			"error": err,
-// 		})
-// 		return
-// 	}
-
-// 	certPEM := config.GetTeslaCredential().Certificate
-
-// 	certPool := x509.NewCertPool()
-// 	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
-// 		log.Fatal("Failed to append certificate")
-// 	}
-
-// 	tlsConfig := &tls.Config{
-// 		RootCAs: certPool,
-// 		ServerName: config.GetTeslaCredential().ServerDomain,
-// 	}
-
-// 	client := &http.Client{
-// 		Transport: &http.Transport{
-// 			TLSClientConfig: tlsConfig,
-// 		},
-// 	}
-
-// 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{
-// 			"msg":   "Error creating request:",
-// 			"error": err,
-// 		})
-// 		return
-// 	}
-
-// 	req.Header.Set("Content-Type", "application/json")
-// 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
-
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{
-// 			"msg":   "Error making request:",
-// 			"error": err,
-// 		})
-// 		return
-// 	}
-// 	defer resp.Body.Close()
-
-// 	body, _ := ioutil.ReadAll(resp.Body)
-
-// 	var jsonData map[string]interface{}
-// 	json.Unmarshal([]byte(string(body)), &jsonData)
-
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"msg":  "done!",
-// 		"data": jsonData,
-// 	})
-// }
-
 func ConnectDevice(c *gin.Context) {
-
 	var requestParams RequestConnectParams
 	if err := c.ShouldBindJSON(&requestParams); err != nil {
 		fmt.Println(err.Error())
@@ -147,32 +53,60 @@ func ConnectDevice(c *gin.Context) {
 	path := "/api/1/vehicles/fleet_telemetry_config"
 	url := fmt.Sprintf("%s%s", base, path)
 
-	jsonStr := `{
-                    "config": {
-                        "prefer_typed": true,
-                        "port": 443,
-                        "exp": 1704067200,
-                        "alert_types": [
-                            "service"
-                        ],
-                        "fields": {
-                            "Location": {
-                                "resend_interval_seconds": 3600,
-                                "minimum_delta": 1,
-                                "interval_seconds": 60
-                            }
-                        },
-                        "ca": "-----BEGIN CERTIFICATE-----\nMIICZTCCAcegAwIBAgIUc5Bo7e9tCfOg9W0SHnkchKnEWd0wCgYIKoZIzj0EAwIw\nITEfMB0GA1UEAwwWZmxlZXRhcGkubW9vdmV0cmF4LmNvbTAeFw0yNTAyMTcxOTQ2\nNDhaFw0zNTAyMTUxOTQ2NDhaMCExHzAdBgNVBAMMFmZsZWV0YXBpLm1vb3ZldHJh\neC5jb20wgZswEAYHKoZIzj0CAQYFK4EEACMDgYYABAE6+cQPQyXbahX51k11jZuz\nGJ08LrGPJkxFIWXdbwVQAbTT2JaaE007gcX1Lmbz+MVj/3wZ+cc0u1Oc5KJrtYUv\ngQHZLc5uL+rmbVtty1RAE4nsAQqkO45MnvsQzSWKp/oQvnlp7XwXSrrImcNzBdEs\nzSDsrDj0sKO1+sJ8GpVl2yXxLqOBmTCBljAdBgNVHQ4EFgQU39VaSG4vEC6y3Erz\nBrJKFe5FqpEwHwYDVR0jBBgwFoAU39VaSG4vEC6y3ErzBrJKFe5FqpEwDwYDVR0T\nAQH/BAUwAwEB/zAhBgNVHREEGjAYghZmbGVldGFwaS5tb292ZXRyYXguY29tMBMG\nA1UdJQQMMAoGCCsGAQUFBwMBMAsGA1UdDwQEAwICjDAKBggqhkjOPQQDAgOBiwAw\ngYcCQUyZ8AvIeDa+4Hh6jgzETAb3PfWphd7ZhJ+Z/7ysa2iXTFRIunAv5oNyfrOf\ns+qUP9oxZ3r/rjADEjKoGxukPSYTAkIBXkBUFHAFUiU6QLdQGlCuVxlSW2OKAyCy\nsVZnIw0jwX+WHvaiVxiwDBvOFKZKBxT3Qn319yDSm+7Dovzo2RQFBAQ=\n-----END CERTIFICATE-----\n",
-						"hostname": "fleetapi.moovetrax.com"
-                    },
-                    "vins": [
-                        "7SAYGDEE9RA313640",
-                    ]
-                }`
+	fieldToStream := "Location"
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(jsonStr)))
+	telemetryData := TelemetryRequest{
+		Config: Config{
+			PreferTyped: true,
+			Port:        443,
+			Exp:         1770670000,
+			AlertTypes:  []string{"service"},
+			Fields: map[string]FieldConfig{
+				fieldToStream: {
+					ResendIntervalSeconds: 3600,
+					MinimumDelta:          1,
+					IntervalSeconds:       60,
+				},
+			},
+			CA:       config.GetTeslaCredential().Certificate,
+			Hostname: config.GetTeslaCredential().ServerDomain,
+		},
+		Vins: requestParams.Vins,
+	}
+
+	payload, err := json.Marshal(telemetryData)
 	if err != nil {
-		fmt.Println("Error creating request:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Failed to marshal JSON data:",
+			"error": err,
+		})
+		return
+	}
+
+	// certPEM := config.GetTeslaCredential().Certificate
+
+	// certPool := x509.NewCertPool()
+	// if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+	// 	log.Fatal("Failed to append certificate")
+	// }
+
+	// tlsConfig := &tls.Config{
+	// 	RootCAs: certPool,
+	// 	ServerName: config.GetTeslaCredential().ServerDomain,
+	// }
+
+	// client := &http.Client{
+	// 	Transport: &http.Transport{
+	// 		TLSClientConfig: tlsConfig,
+	// 	},
+	// }
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Error creating request:",
+			"error": err,
+		})
 		return
 	}
 
@@ -183,7 +117,7 @@ func ConnectDevice(c *gin.Context) {
 	resp, err := client.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg":   "Error creating request:",
+			"msg":   "Error making request:",
 			"error": err,
 		})
 		return
@@ -191,6 +125,7 @@ func ConnectDevice(c *gin.Context) {
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
+
 	var jsonData map[string]interface{}
 	json.Unmarshal([]byte(string(body)), &jsonData)
 
@@ -199,6 +134,72 @@ func ConnectDevice(c *gin.Context) {
 		"data": jsonData,
 	})
 }
+
+// func ConnectDevice(c *gin.Context) {
+
+// 	var requestParams RequestConnectParams
+// 	if err := c.ShouldBindJSON(&requestParams); err != nil {
+// 		fmt.Println(err.Error())
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
+// 	path := "/api/1/vehicles/fleet_telemetry_config"
+// 	url := fmt.Sprintf("%s%s", base, path)
+
+// 	jsonStr := `{
+//                     "config": {
+//                         "prefer_typed": true,
+//                         "port": 443,
+//                         "exp": 1704067200,
+//                         "alert_types": [
+//                             "service"
+//                         ],
+//                         "fields": {
+//                             "Location": {
+//                                 "resend_interval_seconds": 3600,
+//                                 "minimum_delta": 1,
+//                                 "interval_seconds": 60
+//                             }
+//                         },
+//                         "ca": "-----BEGIN CERTIFICATE-----\nMIICZTCCAcegAwIBAgIUc5Bo7e9tCfOg9W0SHnkchKnEWd0wCgYIKoZIzj0EAwIw\nITEfMB0GA1UEAwwWZmxlZXRhcGkubW9vdmV0cmF4LmNvbTAeFw0yNTAyMTcxOTQ2\nNDhaFw0zNTAyMTUxOTQ2NDhaMCExHzAdBgNVBAMMFmZsZWV0YXBpLm1vb3ZldHJh\neC5jb20wgZswEAYHKoZIzj0CAQYFK4EEACMDgYYABAE6+cQPQyXbahX51k11jZuz\nGJ08LrGPJkxFIWXdbwVQAbTT2JaaE007gcX1Lmbz+MVj/3wZ+cc0u1Oc5KJrtYUv\ngQHZLc5uL+rmbVtty1RAE4nsAQqkO45MnvsQzSWKp/oQvnlp7XwXSrrImcNzBdEs\nzSDsrDj0sKO1+sJ8GpVl2yXxLqOBmTCBljAdBgNVHQ4EFgQU39VaSG4vEC6y3Erz\nBrJKFe5FqpEwHwYDVR0jBBgwFoAU39VaSG4vEC6y3ErzBrJKFe5FqpEwDwYDVR0T\nAQH/BAUwAwEB/zAhBgNVHREEGjAYghZmbGVldGFwaS5tb292ZXRyYXguY29tMBMG\nA1UdJQQMMAoGCCsGAQUFBwMBMAsGA1UdDwQEAwICjDAKBggqhkjOPQQDAgOBiwAw\ngYcCQUyZ8AvIeDa+4Hh6jgzETAb3PfWphd7ZhJ+Z/7ysa2iXTFRIunAv5oNyfrOf\ns+qUP9oxZ3r/rjADEjKoGxukPSYTAkIBXkBUFHAFUiU6QLdQGlCuVxlSW2OKAyCy\nsVZnIw0jwX+WHvaiVxiwDBvOFKZKBxT3Qn319yDSm+7Dovzo2RQFBAQ=\n-----END CERTIFICATE-----\n",
+// 						"hostname": "fleetapi.moovetrax.com"
+//                     },
+//                     "vins": [
+//                         "7SAYGDEE9RA313640",
+//                     ]
+//                 }`
+
+// 	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(jsonStr)))
+// 	if err != nil {
+// 		fmt.Println("Error creating request:", err)
+// 		return
+// 	}
+
+// 	req.Header.Set("Content-Type", "application/json")
+// 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
+
+// 	client := &http.Client{}
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{
+// 			"msg":   "Error creating request:",
+// 			"error": err,
+// 		})
+// 		return
+// 	}
+// 	defer resp.Body.Close()
+
+// 	body, _ := ioutil.ReadAll(resp.Body)
+// 	var jsonData map[string]interface{}
+// 	json.Unmarshal([]byte(string(body)), &jsonData)
+
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"msg":  "done!",
+// 		"data": jsonData,
+// 	})
+// }
 
 func GetDeviceConfigStatus(c *gin.Context) {
 	var requestParams RequestConnectParams
