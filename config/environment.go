@@ -60,7 +60,7 @@ sVZnIw0jwX+WHvaiVxiwDBvOFKZKBxT3Qn319yDSm+7Dovzo2RQFBAQ=
 	teslaCredential.DataScope = "openid%20vehicle_device_data%20vehicle_location%20offline_access%20vehicle_cmds%20vehicle_charging_cmds"
 	teslaCredential.Certificate = certificate
 	teslaCredential.ServerDomain = "fleetapi.moovetrax.com"
-	teslaCredential.Port = 8443
+	teslaCredential.Port = 443
 	teslaCredential.ProxyUri = "https://fleetapi.moovetrax.com:4443"
 
 	return &teslaCredential
