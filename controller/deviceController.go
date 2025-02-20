@@ -49,7 +49,7 @@ func ConnectDevice(c *gin.Context) {
 		return
 	}
 
-	base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
+	base := config.GetTeslaCredential().ProxyUri
 	path := "/api/1/vehicles/fleet_telemetry_config"
 	url := fmt.Sprintf("%s%s", base, path)
 
@@ -58,7 +58,7 @@ func ConnectDevice(c *gin.Context) {
 	telemetryData := TelemetryRequest{
 		Config: Config{
 			PreferTyped: true,
-			Port:        443,
+			Port:        4443,
 			Exp:         1770670000,
 			AlertTypes:  []string{"service"},
 			Fields: map[string]FieldConfig{
@@ -83,23 +83,23 @@ func ConnectDevice(c *gin.Context) {
 		return
 	}
 
-	// certPEM := config.GetTeslaCredential().Certificate
+	certPEM := config.GetTeslaCredential().Certificate
 
-	// certPool := x509.NewCertPool()
-	// if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
-	// 	log.Fatal("Failed to append certificate")
-	// }
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+		log.Fatal("Failed to append certificate")
+	}
 
-	// tlsConfig := &tls.Config{
-	// 	RootCAs: certPool,
-	// 	ServerName: config.GetTeslaCredential().ServerDomain,
-	// }
+	tlsConfig := &tls.Config{
+		RootCAs:    certPool,
+		ServerName: config.GetTeslaCredential().ServerDomain,
+	}
 
-	// client := &http.Client{
-	// 	Transport: &http.Transport{
-	// 		TLSClientConfig: tlsConfig,
-	// 	},
-	// }
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
@@ -113,7 +113,7 @@ func ConnectDevice(c *gin.Context) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
 
-	client := &http.Client{}
+	// client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
