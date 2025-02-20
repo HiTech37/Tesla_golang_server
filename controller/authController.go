@@ -186,7 +186,7 @@ func RegisterPublicKey(accessToken string) bool {
 
 	// Create the request body
 	data := map[string]string{
-		"domain": credential.RootDomain,
+		"domain": credential.ServerDomain,
 	}
 	jsonData, err := json.Marshal(data)
 	if err != nil {
