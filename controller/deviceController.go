@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	config "tesla_server/config"
+	"tesla_server/model"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -39,6 +40,19 @@ type Config struct {
 type TelemetryRequest struct {
 	Config Config   `json:"config"`
 	Vins   []string `json:"vins"`
+}
+
+type VehicleInfo struct {
+	Vin        string `json:"vin"`
+	DeviceName string `json:"display_name"`
+}
+
+type DeviceInfoParams struct {
+	Email        string          `json:"email"`
+	DeviceList   []VehicleInfo   `json:"deviceList"`
+	AccessToken  string          `json:"accessToken"`
+	RefreshToken string          `json:"refreshToken"`
+	ShareStatus  map[string]bool `json:"checkStatus"`
 }
 
 func ConnectDevice(c *gin.Context) {
@@ -134,72 +148,6 @@ func ConnectDevice(c *gin.Context) {
 		"data": jsonData,
 	})
 }
-
-// func ConnectDevice(c *gin.Context) {
-
-// 	var requestParams RequestConnectParams
-// 	if err := c.ShouldBindJSON(&requestParams); err != nil {
-// 		fmt.Println(err.Error())
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
-// 	path := "/api/1/vehicles/fleet_telemetry_config"
-// 	url := fmt.Sprintf("%s%s", base, path)
-
-// 	jsonStr := `{
-//                     "config": {
-//                         "prefer_typed": true,
-//                         "port": 443,
-//                         "exp": 1704067200,
-//                         "alert_types": [
-//                             "service"
-//                         ],
-//                         "fields": {
-//                             "Location": {
-//                                 "resend_interval_seconds": 3600,
-//                                 "minimum_delta": 1,
-//                                 "interval_seconds": 60
-//                             }
-//                         },
-//                         "ca": "-----BEGIN CERTIFICATE-----\nMIICZTCCAcegAwIBAgIUc5Bo7e9tCfOg9W0SHnkchKnEWd0wCgYIKoZIzj0EAwIw\nITEfMB0GA1UEAwwWZmxlZXRhcGkubW9vdmV0cmF4LmNvbTAeFw0yNTAyMTcxOTQ2\nNDhaFw0zNTAyMTUxOTQ2NDhaMCExHzAdBgNVBAMMFmZsZWV0YXBpLm1vb3ZldHJh\neC5jb20wgZswEAYHKoZIzj0CAQYFK4EEACMDgYYABAE6+cQPQyXbahX51k11jZuz\nGJ08LrGPJkxFIWXdbwVQAbTT2JaaE007gcX1Lmbz+MVj/3wZ+cc0u1Oc5KJrtYUv\ngQHZLc5uL+rmbVtty1RAE4nsAQqkO45MnvsQzSWKp/oQvnlp7XwXSrrImcNzBdEs\nzSDsrDj0sKO1+sJ8GpVl2yXxLqOBmTCBljAdBgNVHQ4EFgQU39VaSG4vEC6y3Erz\nBrJKFe5FqpEwHwYDVR0jBBgwFoAU39VaSG4vEC6y3ErzBrJKFe5FqpEwDwYDVR0T\nAQH/BAUwAwEB/zAhBgNVHREEGjAYghZmbGVldGFwaS5tb292ZXRyYXguY29tMBMG\nA1UdJQQMMAoGCCsGAQUFBwMBMAsGA1UdDwQEAwICjDAKBggqhkjOPQQDAgOBiwAw\ngYcCQUyZ8AvIeDa+4Hh6jgzETAb3PfWphd7ZhJ+Z/7ysa2iXTFRIunAv5oNyfrOf\ns+qUP9oxZ3r/rjADEjKoGxukPSYTAkIBXkBUFHAFUiU6QLdQGlCuVxlSW2OKAyCy\nsVZnIw0jwX+WHvaiVxiwDBvOFKZKBxT3Qn319yDSm+7Dovzo2RQFBAQ=\n-----END CERTIFICATE-----\n",
-// 						"hostname": "fleetapi.moovetrax.com"
-//                     },
-//                     "vins": [
-//                         "7SAYGDEE9RA313640",
-//                     ]
-//                 }`
-
-// 	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(jsonStr)))
-// 	if err != nil {
-// 		fmt.Println("Error creating request:", err)
-// 		return
-// 	}
-
-// 	req.Header.Set("Content-Type", "application/json")
-// 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
-
-// 	client := &http.Client{}
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{
-// 			"msg":   "Error creating request:",
-// 			"error": err,
-// 		})
-// 		return
-// 	}
-// 	defer resp.Body.Close()
-
-// 	body, _ := ioutil.ReadAll(resp.Body)
-// 	var jsonData map[string]interface{}
-// 	json.Unmarshal([]byte(string(body)), &jsonData)
-
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"msg":  "done!",
-// 		"data": jsonData,
-// 	})
-// }
 
 func GetDeviceConfigStatus(c *gin.Context) {
 	var requestParams RequestConnectParams
@@ -470,5 +418,27 @@ func GetDeviceLiveData(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"msg":  "done!",
 		"data": jsonData,
+	})
+}
+
+func UpdateDeviceInfo(c *gin.Context) {
+	var deviceInfoParams DeviceInfoParams
+	if err := c.ShouldBindJSON(&deviceInfoParams); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	for _, device := range deviceInfoParams.DeviceList {
+		if device.Vin != "" {
+			err := model.UpdateDeviceAuthTokensbyVin(deviceInfoParams.AccessToken, deviceInfoParams.RefreshToken, device.Vin)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "done!",
 	})
 }
