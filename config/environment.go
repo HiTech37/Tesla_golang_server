@@ -35,7 +35,7 @@ func GetTeslaCredential() *TeslaCredential {
 		teslaCredential.CallbackUri = "https://test.moovetrax.com/tesla_signup"
 
 	} else if environment == "prod" {
-		teslaCredential.CallbackUri = "https://moovetrax.com/tesla_signup"
+		teslaCredential.CallbackUri = "https://fleetapi.moovetrax.com/device_signup"
 	}
 
 	var certificate = `-----BEGIN CERTIFICATE-----
@@ -54,8 +54,8 @@ s+qUP9oxZ3r/rjADEjKoGxukPSYTAkIBXkBUFHAFUiU6QLdQGlCuVxlSW2OKAyCy
 sVZnIw0jwX+WHvaiVxiwDBvOFKZKBxT3Qn319yDSm+7Dovzo2RQFBAQ=
 -----END CERTIFICATE-----` // cert.pem
 
-	teslaCredential.ClientID = "69e55814-1679-46d3-a3b6-ac713f77f287"
-	teslaCredential.SecretKey = "ta-secret.TjmkFpMgD_pXgdBA"
+	teslaCredential.ClientID = "60d97918-9b6b-4c92-88e3-ff9e9403239f"
+	teslaCredential.SecretKey = "ta-secret.8p8Jz&Y^%n9FCCeE"
 	teslaCredential.RootDomain = "https://moovetrax.com"
 	teslaCredential.DataScope = "openid%20vehicle_device_data%20vehicle_location%20offline_access%20vehicle_cmds%20vehicle_charging_cmds"
 	teslaCredential.Certificate = certificate
