@@ -439,6 +439,7 @@ func UpdateDeviceInfo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"msg": "done!",
+		"data": deviceInfoParams.AccessToken,
+		"msg":  "done!",
 	})
 }
