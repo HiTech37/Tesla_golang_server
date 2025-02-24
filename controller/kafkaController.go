@@ -38,6 +38,7 @@ func KafkaConsumer() {
 		"group.id":          "telemetry",
 		"client.id":         "telemetry-service",
 		"auto.offset.reset": "earliest",
+		"message.max.bytes": 524288000,
 		// 	"security.protocol":        "SSL",
 		// 	"ssl.ca.location":          "/home/ec2-user/key_store/fleetapi.moovetrax.com/cert.pem",
 		// 	"ssl.certificate.location": "/home/ec2-user/key_store/fleetapi.moovetrax.com/fullchain_fixed.pem",
