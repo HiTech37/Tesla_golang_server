@@ -40,9 +40,10 @@ var db *gorm.DB
 
 func KafkaConsumer() {
 	config := &kafka.ConfigMap{
-		"bootstrap.servers": "fleetapi.moovetrax.com:9092",
-		"group.id":          "telemetry",
-		"auto.offset.reset": "earliest",
+		"bootstrap.servers":     "fleetapi.moovetrax.com:9093",
+		"group.id":              "telemetry",
+		"auto.offset.reset":     "earliest",
+		"broker.address.family": "v4",
 	}
 
 	consumer, err := kafka.NewConsumer(config)
