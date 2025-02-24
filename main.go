@@ -23,6 +23,8 @@ func main() {
 		MaxAge:           12 * time.Hour, // Cache preflight requests for 12 hours
 	}))
 
+	controller.kafkaConsumer()
+
 	r.GET("/api/tesla_signup", controller.GetTeslaSigninURI)
 	r.GET("/api/requestAuth", controller.RequestAuth)
 	r.GET("/api/getAllVehichles", controller.GetAllVehicles)
