@@ -38,7 +38,7 @@ var db *gorm.DB
 // 	return result.Error
 // }
 
-func kafkaConsumer() {
+func KafkaConsumer() {
 	config := &kafka.ConfigMap{
 		"bootstrap.servers": "localhost:9093",
 		"group.id":          "telemetry",
