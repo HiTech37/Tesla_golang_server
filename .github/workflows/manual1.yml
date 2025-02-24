@@ -20,12 +20,17 @@ jobs:
         with:
           go-version: 1.23.4
 
-      # Step 3: Build the application
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          go mod tidy
+
+      # Step 4: Build the application
       - name: Build the application
         run: |
           go build -o tesla_server main.go
 
-      # Step 4: Deploy to CentOS server
+      # Step 5: Deploy to CentOS server
       - name: Deploy and restart service on CentOS
         env:
           SERVER_IP: ${{ secrets.SERVER_IP }}
