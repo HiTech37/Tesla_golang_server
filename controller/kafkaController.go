@@ -52,7 +52,7 @@ func KafkaConsumer() {
 	defer consumer.Close()
 
 	// Subscribe to the topic
-	err = consumer.Subscribe("__consumer_offsets", nil)
+	err = consumer.Subscribe("telemetry_V", nil)
 	if err != nil {
 		log.Fatalf("Failed to subscribe to topic: %s", err)
 	}
@@ -64,7 +64,7 @@ func KafkaConsumer() {
 		msg, err := consumer.ReadMessage(-1)
 		if err == nil {
 			fmt.Printf("Message on %s: %s\n", msg.TopicPartition, string(msg.Value))
-			fmt.Println("data=>", msg)
+
 			var telemetryData TelemetryData
 			err := json.Unmarshal(msg.Value, &telemetryData)
 			if err != nil {
