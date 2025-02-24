@@ -7,10 +7,9 @@ import (
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	"gorm.io/gorm"
 )
 
-// TelemetryTesla struct (same as the model)
+// TelemetryTesla represents the database entity
 type TelemetryTesla struct {
 	ID                uint      `gorm:"primaryKey"`
 	LocationLatitude  float64   `json:"location_latitude"`
@@ -19,126 +18,98 @@ type TelemetryTesla struct {
 	CreatedAt         time.Time `json:"createdAt"`
 }
 
-var db *gorm.DB
-
-// func initDB() {
-// 	var err error
-// 	dsn := "host=localhost user=postgres password=your_password dbname=telemetry_db port=5432 sslmode=disable TimeZone=Asia/Kolkata"
-// 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-// 	if err != nil {
-// 		log.Fatalf("Failed to connect to the database: %v", err)
-// 	}
-
-// 	// Auto Migrate the schema
-// 	db.AutoMigrate(&TelemetryTesla{})
-// }
-
-// func saveData(data TelemetryTesla) error {
-// 	result := db.Create(&data)
-// 	return result.Error
-// }
+type TelemetryData struct {
+	CreatedAt string `json:"createdAt"`
+	Data      []struct {
+		Key   string `json:"key"`
+		Value struct {
+			LocationValue struct {
+				Latitude  float64 `json:"latitude"`
+				Longitude float64 `json:"longitude"`
+			} `json:"locationValue"`
+		} `json:"value"`
+	} `json:"data"`
+}
 
 func KafkaConsumer() {
+	// Initialize Kafka consumer
 	config := &kafka.ConfigMap{
-		"bootstrap.servers": "localhost:9092",
+		"bootstrap.servers": "localhost:9093",
 		"group.id":          "telemetry",
+		"client.id":         "telemetry-service",
 		"auto.offset.reset": "earliest",
 	}
 
 	consumer, err := kafka.NewConsumer(config)
 	if err != nil {
-		log.Fatalf("Failed to create consumer: %v", err)
+		log.Fatalf("Failed to create consumer: %s", err)
 	}
 	defer consumer.Close()
 
-	topic := "telemetry_V"
-	err = consumer.SubscribeTopics([]string{topic}, nil)
+	// Subscribe to the topic
+	err = consumer.Subscribe("telemetry_V", nil)
 	if err != nil {
-		log.Fatalf("Failed to subscribe to topic: %v", err)
+		log.Fatalf("Failed to subscribe to topic: %s", err)
 	}
 
-	fmt.Println("Listening for messages on topic:", topic)
+	fmt.Println("Kafka consumer is running...")
 
+	// Continuously consume messages
 	for {
 		msg, err := consumer.ReadMessage(-1)
 		if err == nil {
-			fmt.Printf("Received message on %s: %s\n", msg.TopicPartition, string(msg.Value))
+			fmt.Printf("Message on %s: %s\n", msg.TopicPartition, string(msg.Value))
 
-			var telemetryData map[string]interface{}
+			var telemetryData TelemetryData
 			err := json.Unmarshal(msg.Value, &telemetryData)
 			if err != nil {
-				log.Printf("Error parsing message: %v", err)
+				log.Printf("Failed to parse JSON: %s", err)
 				continue
 			}
 
-			// Extracting data from JSON
-			datestring, ok := telemetryData["createdAt"].(string)
-			if !ok {
-				log.Println("createdAt not found or invalid")
-				continue
-			}
-			createdAt, err := time.Parse(time.RFC3339, datestring)
+			// Parse datetime
+			createdAt, err := time.Parse(time.RFC3339, telemetryData.CreatedAt)
 			if err != nil {
-				log.Printf("Error parsing createdAt: %v", err)
+				log.Printf("Failed to parse datetime: %s", err)
 				continue
 			}
 
-			dataList, ok := telemetryData["data"].([]interface{})
-			if !ok {
-				log.Println("data list not found or invalid")
-				continue
-			}
-
-			var locationValue map[string]interface{}
+			var latitude, longitude float64
 			var chargeState string
 
-			// Extract Location and ChargeState
-			for _, item := range dataList {
-				fmt.Println("Data1=>", item)
-				dataMap, ok := item.(map[string]interface{})
-				if !ok {
-					continue
-				}
-
-				if dataMap["key"] == "Location" {
-					if val, exists := dataMap["value"].(map[string]interface{}); exists {
-						locationValue = val["locationValue"].(map[string]interface{})
-					}
-				}
-
-				if dataMap["key"] == "ChargeState" {
-					if val, exists := dataMap["value"].(string); exists {
-						chargeState = val
+			// Extract Location and ChargeState data
+			for _, item := range telemetryData.Data {
+				if item.Key == "Location" {
+					latitude = item.Value.LocationValue.Latitude
+					longitude = item.Value.LocationValue.Longitude
+				} else if item.Key == "ChargeState" {
+					chargeStateBytes, err := json.Marshal(item.Value)
+					if err == nil {
+						chargeState = string(chargeStateBytes)
 					}
 				}
 			}
 
-			if locationValue != nil {
-				latitude, latOk := locationValue["latitude"].(float64)
-				longitude, longOk := locationValue["longitude"].(float64)
-
-				if latOk && longOk {
-					// Prepare data to be saved
-					data := TelemetryTesla{
-						LocationLatitude:  latitude,
-						LocationLongitude: longitude,
-						ChargeState:       chargeState,
-						CreatedAt:         createdAt,
-					}
-
-					fmt.Println("Data2=>", data)
-					// Save data
-					// err := saveData(data)
-					if err != nil {
-						log.Printf("Error saving data: %v", err)
-					} else {
-						log.Println("Data saved successfully")
-					}
+			// Save data to the database if latitude and longitude are present
+			if latitude != 0 && longitude != 0 {
+				telemetry := TelemetryTesla{
+					LocationLatitude:  latitude,
+					LocationLongitude: longitude,
+					ChargeState:       chargeState,
+					CreatedAt:         createdAt,
 				}
+
+				fmt.Println("=>", telemetry)
+
+				// if err := db.WithContext(context.Background()).Create(&telemetry).Error; err != nil {
+				// 	log.Printf("Failed to save to database: %s", err)
+				// } else {
+				// 	fmt.Printf("Saved to database: %+v\n", telemetry)
+				// }
 			}
 		} else {
-			// Error handling
-			log.Printf("Consumer error: %v (%v)\n", err, msg)
+			// Log consumer errors
+			fmt.Printf("Consumer error: %v (%v)\n", err, msg)
 		}
 	}
 }
