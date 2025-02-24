@@ -34,14 +34,14 @@ type TelemetryData struct {
 func KafkaConsumer() {
 	// Initialize Kafka consumer
 	config := &kafka.ConfigMap{
-		"bootstrap.servers":        "localhost:9093",
-		"group.id":                 "telemetry",
-		"client.id":                "telemetry-service",
-		"auto.offset.reset":        "earliest",
-		"security.protocol":        "SSL",
-		"ssl.ca.location":          "/home/ec2-user/key_store/fleetapi.moovetrax.com/cert.pem",
-		"ssl.certificate.location": "/home/ec2-user/key_store/fleetapi.moovetrax.com/fullchain_fixed.pem",
-		"ssl.key.location":         "/home/ec2-user/key_store/fleetapi.moovetrax.com/privkey.pem",
+		"bootstrap.servers": "localhost:9093",
+		"group.id":          "telemetry",
+		"client.id":         "telemetry-service",
+		"auto.offset.reset": "earliest",
+		// 	"security.protocol":        "SSL",
+		// 	"ssl.ca.location":          "/home/ec2-user/key_store/fleetapi.moovetrax.com/cert.pem",
+		// 	"ssl.certificate.location": "/home/ec2-user/key_store/fleetapi.moovetrax.com/fullchain_fixed.pem",
+		// 	"ssl.key.location":         "/home/ec2-user/key_store/fleetapi.moovetrax.com/privkey.pem",
 	}
 
 	consumer, err := kafka.NewConsumer(config)
