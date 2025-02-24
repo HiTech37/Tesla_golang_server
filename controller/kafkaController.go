@@ -64,7 +64,7 @@ func KafkaConsumer() {
 		msg, err := consumer.ReadMessage(-1)
 		if err == nil {
 			fmt.Printf("Message on %s: %s\n", msg.TopicPartition, string(msg.Value))
-
+			fmt.Println("data=>", msg)
 			var telemetryData TelemetryData
 			err := json.Unmarshal(msg.Value, &telemetryData)
 			if err != nil {
