@@ -40,7 +40,7 @@ var db *gorm.DB
 
 func KafkaConsumer() {
 	config := &kafka.ConfigMap{
-		"bootstrap.servers": "localhost:9092",
+		"bootstrap.servers": "fleetapi.moovetrax.com:9092",
 		"group.id":          "telemetry",
 		"auto.offset.reset": "earliest",
 	}
