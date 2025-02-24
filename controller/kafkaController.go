@@ -52,7 +52,7 @@ func KafkaConsumer() {
 	defer consumer.Close()
 
 	// Subscribe to the topic
-	err = consumer.Subscribe("telemetry_V", nil)
+	err = consumer.Subscribe("__consumer_offsets", nil)
 	if err != nil {
 		log.Fatalf("Failed to subscribe to topic: %s", err)
 	}
