@@ -77,9 +77,9 @@ func ConnectDevice(c *gin.Context) {
 			AlertTypes:  []string{"service"},
 			Fields: map[string]FieldConfig{
 				fieldToStream: {
-					ResendIntervalSeconds: 60,
+					ResendIntervalSeconds: 3600,
 					MinimumDelta:          1,
-					IntervalSeconds:       60,
+					IntervalSeconds:       30,
 				},
 			},
 			CA:       config.GetTeslaCredential().Certificate,
