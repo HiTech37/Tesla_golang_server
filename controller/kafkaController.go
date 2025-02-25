@@ -14,7 +14,7 @@ type TelemetryTesla struct {
 	ID                uint      `gorm:"primaryKey"`
 	LocationLatitude  float64   `json:"location_latitude"`
 	LocationLongitude float64   `json:"location_longitude"`
-	ChargeState       string    `json:"charge_state"`
+	BatteryLevel      string    `json:"charge_state"`
 	CreatedAt         time.Time `json:"createdAt"`
 }
 
@@ -27,7 +27,6 @@ type TelemetryData struct {
 				Latitude  float64 `json:"latitude"`
 				Longitude float64 `json:"longitude"`
 			} `json:"locationValue"`
-			StringValue string `json:"stringValue"`
 		} `json:"value"`
 	} `json:"data"`
 }
@@ -81,15 +80,18 @@ func KafkaConsumer() {
 			}
 
 			var latitude, longitude float64
-			var chargeState string
+			var batteryLevel string
 
-			// Extract Location and ChargeState data
+			// Extract Location and batteryLevel data
 			for _, item := range telemetryData.Data {
 				if item.Key == "Location" {
 					latitude = item.Value.LocationValue.Latitude
 					longitude = item.Value.LocationValue.Longitude
-				} else if item.Key == "ChargeState" {
-					chargeState = item.Value.StringValue
+				} else if item.Key == "BatteryLevel" {
+					batteryLevelBytes, err := json.Marshal(item.Value)
+					if err == nil {
+						batteryLevel = string(batteryLevelBytes)
+					}
 				}
 			}
 
@@ -98,7 +100,7 @@ func KafkaConsumer() {
 				telemetry := TelemetryTesla{
 					LocationLatitude:  latitude,
 					LocationLongitude: longitude,
-					ChargeState:       chargeState,
+					BatteryLevel:      batteryLevel,
 					CreatedAt:         createdAt,
 				}
 

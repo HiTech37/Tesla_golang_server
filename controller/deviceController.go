@@ -68,7 +68,7 @@ func ConnectDevice(c *gin.Context) {
 	url := fmt.Sprintf("%s%s", base, path)
 
 	fieldToStream1 := "Location"
-	fieldToStream2 := "ChargeState"
+	fieldToStream2 := "BatteryLevel"
 
 	telemetryData := TelemetryRequest{
 		Config: Config{
