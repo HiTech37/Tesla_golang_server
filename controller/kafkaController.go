@@ -27,6 +27,7 @@ type TelemetryData struct {
 				Latitude  float64 `json:"latitude"`
 				Longitude float64 `json:"longitude"`
 			} `json:"locationValue"`
+			StringValue string `json:"stringValue"`
 		} `json:"value"`
 	} `json:"data"`
 }
@@ -88,10 +89,7 @@ func KafkaConsumer() {
 					latitude = item.Value.LocationValue.Latitude
 					longitude = item.Value.LocationValue.Longitude
 				} else if item.Key == "ChargeState" {
-					chargeStateBytes, err := json.Marshal(item.Value)
-					if err == nil {
-						chargeState = string(chargeStateBytes)
-					}
+					chargeState = item.Value.StringValue
 				}
 			}
 
