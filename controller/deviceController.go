@@ -67,7 +67,8 @@ func ConnectDevice(c *gin.Context) {
 	path := "/api/1/vehicles/fleet_telemetry_config"
 	url := fmt.Sprintf("%s%s", base, path)
 
-	fieldToStream := "Location"
+	fieldToStream1 := "Location"
+	fieldToStream2 := "ChargeState"
 
 	telemetryData := TelemetryRequest{
 		Config: Config{
@@ -76,7 +77,12 @@ func ConnectDevice(c *gin.Context) {
 			Exp:         1770670000,
 			AlertTypes:  []string{"service"},
 			Fields: map[string]FieldConfig{
-				fieldToStream: {
+				fieldToStream1: {
+					ResendIntervalSeconds: 60,
+					MinimumDelta:          1,
+					IntervalSeconds:       30,
+				},
+				fieldToStream2: {
 					ResendIntervalSeconds: 60,
 					MinimumDelta:          1,
 					IntervalSeconds:       30,
