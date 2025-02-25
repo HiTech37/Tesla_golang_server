@@ -34,7 +34,7 @@ type TelemetryData struct {
 func KafkaConsumer() {
 	// Initialize Kafka consumer
 	config := &kafka.ConfigMap{
-		"bootstrap.servers": "kafka:9093",
+		"bootstrap.servers": "54.161.235.213:9093",
 		"group.id":          "telemetry",
 		// "client.id":         "telemetry-service",
 		"auto.offset.reset": "earliest",
