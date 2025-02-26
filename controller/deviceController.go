@@ -80,22 +80,22 @@ func ConnectDevice(c *gin.Context) {
 			AlertTypes:  []string{"service"},
 			Fields: map[string]FieldConfig{
 				fieldToStream1: {
-					ResendIntervalSeconds: 60,
+					ResendIntervalSeconds: 3600,
 					MinimumDelta:          1,
 					IntervalSeconds:       60,
 				},
 				fieldToStream2: {
-					ResendIntervalSeconds: 60,
+					ResendIntervalSeconds: 3600,
 					MinimumDelta:          1,
 					IntervalSeconds:       60,
 				},
 				fieldToStream3: {
-					ResendIntervalSeconds: 60,
+					ResendIntervalSeconds: 3600,
 					MinimumDelta:          1,
 					IntervalSeconds:       60,
 				},
 				fieldToStream4: {
-					ResendIntervalSeconds: 60,
+					ResendIntervalSeconds: 3600,
 					MinimumDelta:          1,
 					IntervalSeconds:       60,
 				},
