@@ -59,10 +59,10 @@ type VehicleInfoParams struct {
 		Color         string `json:"color"`
 		VehicleID     int    `json:"vehicle_id"`
 		VehicleConfig struct {
-			CarType float64 `json:"car_type"`
+			CarType string `json:"car_type"`
 		} `json:"vehicle_config"`
 		VehicleState struct {
-			Odometer float64 `json:"car_version"`
+			CarVersion string `json:"car_version"`
 		} `json:"vehicle_state"`
 	} `json:"response"`
 }
@@ -507,7 +507,7 @@ func UpdateDeviceInfo(c *gin.Context) {
 
 			var vehicleInfoParams VehicleInfoParams
 			json.Unmarshal([]byte(string(body)), &vehicleInfoParams)
-			fmt.Println(vehicleInfoParams.Response.VehicleConfig.CarType, vehicleInfoParams.Response)
+			fmt.Println(vehicleInfoParams.Response, vehicleInfoParams.Response.VehicleConfig.CarType, vehicleInfoParams.Response.Color, vehicleInfoParams.Response.VehicleID, vehicleInfoParams.Response.VehicleState.CarVersion)
 		}
 	}
 
