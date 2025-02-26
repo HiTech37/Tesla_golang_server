@@ -468,32 +468,31 @@ func GetDeviceLiveData(c *gin.Context) {
 func UpdateDeviceInfo(c *gin.Context) {
 	var deviceInfoParams DeviceInfoParams
 	if err := c.ShouldBindJSON(&deviceInfoParams); err != nil {
-		fmt.Println(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload: " + err.Error()})
 		return
 	}
+
 	var payload Payload
+	payload.ShareInfo = make(map[string]bool) // Initialize ShareInfo map
 	var deviceList []VehicleInfo
-	var vehicleInfo VehicleInfo
+
 	for _, device := range deviceInfoParams.DeviceList {
 		if device.Vin != "" {
 			base := config.GetTeslaCredential().ProxyUri
 			url := fmt.Sprintf(base+"/api/1/vehicles/%s/vehicle_data", device.Vin)
 
 			certPEM := config.GetTeslaCredential().Certificate
-
 			certPool := x509.NewCertPool()
 			if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
 				log.Fatal("Failed to append certificate")
 			}
 
-			// Create a custom TLS configuration that uses the certificate pool.
+			// TLS Configuration
 			tlsConfig := &tls.Config{
 				RootCAs:    certPool,
 				ServerName: config.GetTeslaCredential().ServerDomain,
 			}
 
-			// Create an HTTP client that uses this TLS configuration.
 			client := &http.Client{
 				Transport: &http.Transport{
 					TLSClientConfig: tlsConfig,
@@ -502,7 +501,10 @@ func UpdateDeviceInfo(c *gin.Context) {
 
 			req, err := http.NewRequest("GET", url, nil)
 			if err != nil {
-				fmt.Println("Error creating request:", err)
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"msg":   "Error creating request",
+					"error": err.Error(),
+				})
 				return
 			}
 
@@ -512,8 +514,8 @@ func UpdateDeviceInfo(c *gin.Context) {
 			resp, err := client.Do(req)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
-					"msg":   "Error making request:",
-					"error": err,
+					"msg":   "Error making request",
+					"error": err.Error(),
 				})
 				return
 			}
@@ -522,17 +524,30 @@ func UpdateDeviceInfo(c *gin.Context) {
 			body, _ := io.ReadAll(resp.Body)
 
 			var vehicleInfoParams VehicleInfoParams
-			json.Unmarshal([]byte(string(body)), &vehicleInfoParams)
-			vehicleInfo.Vin = device.Vin
-			vehicleInfo.CarType = vehicleInfoParams.Response.VehicleConfig.CarType
-			vehicleInfo.DeviceName = device.DeviceName
-			vehicleInfo.VehicleID = strconv.Itoa(vehicleInfoParams.Response.VehicleID)
-			vehicleInfo.ShareAbi = deviceInfoParams.ShareStatus["abi_insurance"]
-			vehicleInfo.ShareTintAi = deviceInfoParams.ShareStatus["tint_ai"]
-			vehicleInfo.Color = vehicleInfoParams.Response.Color
+			if err := json.Unmarshal(body, &vehicleInfoParams); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"msg":   "Error parsing vehicle data",
+					"error": err.Error(),
+				})
+				return
+			}
+
+			// Populate VehicleInfo
+			vehicleInfo := VehicleInfo{
+				Vin:         device.Vin,
+				CarType:     vehicleInfoParams.Response.VehicleConfig.CarType,
+				DeviceName:  device.DeviceName,
+				VehicleID:   strconv.Itoa(vehicleInfoParams.Response.VehicleID),
+				ShareAbi:    deviceInfoParams.ShareStatus["abi_insurance"],
+				ShareTintAi: deviceInfoParams.ShareStatus["tint_ai"],
+				Color:       vehicleInfoParams.Response.Color,
+			}
+
 			deviceList = append(deviceList, vehicleInfo)
 		}
 	}
+
+	// Populate Payload
 	payload.AccessToken = deviceInfoParams.AccessToken
 	payload.RefreshToken = deviceInfoParams.RefreshToken
 	payload.Email = deviceInfoParams.Email
@@ -540,6 +555,7 @@ func UpdateDeviceInfo(c *gin.Context) {
 	payload.ShareInfo["abi_insurance"] = deviceInfoParams.ShareStatus["abi_insurance"]
 	payload.ShareInfo["tint_ai"] = deviceInfoParams.ShareStatus["tint_ai"]
 
+	// Return response
 	c.JSON(http.StatusOK, gin.H{
 		"data": payload,
 		"msg":  "done!",
