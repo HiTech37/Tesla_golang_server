@@ -9,7 +9,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
 	config "tesla_server/config"
 	"time"
 
@@ -450,9 +449,27 @@ func UpdateDeviceInfo(c *gin.Context) {
 	for _, device := range deviceInfoParams.DeviceList {
 		if device.Vin != "" {
 			base := config.GetTeslaCredential().ProxyUri
-			path := "/api/1/vehicles/{vehicle_tag}/vehicle_data"
-			path = strings.Replace(path, "{vehicle_tag}", device.Vin, 1)
-			url := fmt.Sprintf("%s%s", base, path)
+			url := fmt.Sprintf(base+"/api/1/vehicles/%s/vehicle_data", device.Vin)
+
+			certPEM := config.GetTeslaCredential().Certificate
+
+			certPool := x509.NewCertPool()
+			if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+				log.Fatal("Failed to append certificate")
+			}
+
+			// Create a custom TLS configuration that uses the certificate pool.
+			tlsConfig := &tls.Config{
+				RootCAs:    certPool,
+				ServerName: config.GetTeslaCredential().ServerDomain,
+			}
+
+			// Create an HTTP client that uses this TLS configuration.
+			client := &http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: tlsConfig,
+				},
+			}
 
 			req, err := http.NewRequest("GET", url, nil)
 			if err != nil {
@@ -461,9 +478,8 @@ func UpdateDeviceInfo(c *gin.Context) {
 			}
 
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", deviceInfoParams.AccessToken))
+			req.Header.Set("Authorization", "Bearer "+deviceInfoParams.AccessToken)
 
-			client := &http.Client{}
 			resp, err := client.Do(req)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
@@ -475,6 +491,7 @@ func UpdateDeviceInfo(c *gin.Context) {
 			defer resp.Body.Close()
 
 			body, _ := io.ReadAll(resp.Body)
+
 			var jsonData map[string]interface{}
 			json.Unmarshal([]byte(string(body)), &jsonData)
 			fmt.Println(jsonData)
