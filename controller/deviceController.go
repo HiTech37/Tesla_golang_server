@@ -537,11 +537,11 @@ func UpdateDeviceInfo(c *gin.Context) {
 	payload.RefreshToken = deviceInfoParams.RefreshToken
 	payload.Email = deviceInfoParams.Email
 	payload.DeviceList = deviceList
-
-	fmt.Println(payload)
+	payload.ShareInfo["abi_insurance"] = deviceInfoParams.ShareStatus["abi_insurance"]
+	payload.ShareInfo["tint_ai"] = deviceInfoParams.ShareStatus["tint_ai"]
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": deviceInfoParams.AccessToken,
+		"data": payload,
 		"msg":  "done!",
 	})
 }
