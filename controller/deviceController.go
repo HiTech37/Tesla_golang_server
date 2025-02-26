@@ -6,11 +6,11 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
+	"strings"
 	config "tesla_server/config"
-	"tesla_server/model"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -156,7 +156,7 @@ func ConnectDevice(c *gin.Context) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
 	var jsonData map[string]interface{}
 	json.Unmarshal([]byte(string(body)), &jsonData)
@@ -222,7 +222,7 @@ func GetDeviceConfigStatus(c *gin.Context) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	var jsonData map[string]interface{}
 	json.Unmarshal([]byte(string(body)), &jsonData)
 
@@ -287,7 +287,7 @@ func GetFleetTelemetryError(c *gin.Context) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	var jsonData map[string]interface{}
 	json.Unmarshal([]byte(string(body)), &jsonData)
 
@@ -363,7 +363,7 @@ func GetFleetStatus(c *gin.Context) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error reading response body:", err)
 		return
@@ -428,7 +428,7 @@ func GetDeviceLiveData(c *gin.Context) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
 	var jsonData map[string]interface{}
 	json.Unmarshal([]byte(string(body)), &jsonData)
@@ -449,10 +449,35 @@ func UpdateDeviceInfo(c *gin.Context) {
 
 	for _, device := range deviceInfoParams.DeviceList {
 		if device.Vin != "" {
-			err := model.UpdateDeviceAuthTokensbyVin(deviceInfoParams.AccessToken, deviceInfoParams.RefreshToken, device.Vin)
+			base := config.GetTeslaCredential().ProxyUri
+			path := "/api/1/vehicles/{vehicle_tag}/vehicle_data"
+			path = strings.Replace(path, "{vehicle_tag}", device.Vin, 1)
+			url := fmt.Sprintf("%s%s", base, path)
+
+			req, err := http.NewRequest("GET", url, nil)
 			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				fmt.Println("Error creating request:", err)
+				return
 			}
+
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", deviceInfoParams.AccessToken))
+
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"msg":   "Error making request:",
+					"error": err,
+				})
+				return
+			}
+			defer resp.Body.Close()
+
+			body, _ := io.ReadAll(resp.Body)
+			var jsonData map[string]interface{}
+			json.Unmarshal([]byte(string(body)), &jsonData)
+			fmt.Println(jsonData)
 		}
 	}
 

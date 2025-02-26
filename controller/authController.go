@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	config "tesla_server/config"
@@ -95,7 +95,7 @@ func RequestAuth(c *gin.Context) {
 	defer resp.Body.Close()
 
 	// If successful, print the response status and body
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error reading response body:", err)
 		return
@@ -144,7 +144,7 @@ func RequestAuth(c *gin.Context) {
 		defer resp.Body.Close()
 
 		// Read and return the response
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read response"})
 			return
@@ -238,7 +238,7 @@ func GetAllVehicles(c *gin.Context) {
 	defer resp.Body.Close()
 
 	// Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read response"})
 		return
