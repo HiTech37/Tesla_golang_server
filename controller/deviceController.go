@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	config "tesla_server/config"
 	"time"
 
@@ -42,8 +43,13 @@ type TelemetryRequest struct {
 }
 
 type VehicleInfo struct {
-	Vin        string `json:"vin"`
-	DeviceName string `json:"display_name"`
+	Vin         string `json:"vin"`
+	DeviceName  string `json:"display_name"`
+	VehicleID   string `json:"id_s"`
+	CarType     string `json:"model"`
+	Color       string `json:"color"`
+	ShareAbi    bool   `json:"abi"`
+	ShareTintAi bool   `json:"tint_ai"`
 }
 
 type DeviceInfoParams struct {
@@ -65,6 +71,14 @@ type VehicleInfoParams struct {
 			CarVersion string `json:"car_version"`
 		} `json:"vehicle_state"`
 	} `json:"response"`
+}
+
+type Payload struct {
+	Email        string          `json:"email"`
+	DeviceList   []VehicleInfo   `json:"deviceList"`
+	AccessToken  string          `json:"accessToken"`
+	RefreshToken string          `json:"refreshToken"`
+	ShareInfo    map[string]bool `json:"shareInfo"`
 }
 
 func ConnectDevice(c *gin.Context) {
@@ -458,7 +472,9 @@ func UpdateDeviceInfo(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
+	var payload Payload
+	var deviceList []VehicleInfo
+	var vehicleInfo VehicleInfo
 	for _, device := range deviceInfoParams.DeviceList {
 		if device.Vin != "" {
 			base := config.GetTeslaCredential().ProxyUri
@@ -507,9 +523,22 @@ func UpdateDeviceInfo(c *gin.Context) {
 
 			var vehicleInfoParams VehicleInfoParams
 			json.Unmarshal([]byte(string(body)), &vehicleInfoParams)
-			fmt.Println(vehicleInfoParams.Response, vehicleInfoParams.Response.VehicleConfig.CarType, vehicleInfoParams.Response.Color, vehicleInfoParams.Response.VehicleID, vehicleInfoParams.Response.VehicleState.CarVersion)
+			vehicleInfo.Vin = device.Vin
+			vehicleInfo.CarType = vehicleInfoParams.Response.VehicleConfig.CarType
+			vehicleInfo.DeviceName = device.DeviceName
+			vehicleInfo.VehicleID = strconv.Itoa(vehicleInfoParams.Response.VehicleID)
+			vehicleInfo.ShareAbi = deviceInfoParams.ShareStatus["abi_insurance"]
+			vehicleInfo.ShareTintAi = deviceInfoParams.ShareStatus["tint_ai"]
+			vehicleInfo.Color = vehicleInfoParams.Response.Color
+			deviceList = append(deviceList, vehicleInfo)
 		}
 	}
+	payload.AccessToken = deviceInfoParams.AccessToken
+	payload.RefreshToken = deviceInfoParams.RefreshToken
+	payload.Email = deviceInfoParams.Email
+	payload.DeviceList = deviceList
+
+	fmt.Println(payload)
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": deviceInfoParams.AccessToken,

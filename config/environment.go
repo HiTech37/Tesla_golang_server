@@ -15,6 +15,7 @@ type TeslaCredential struct {
 	CallbackUri    string
 	DataScope      string
 	RootDomain     string
+	TestServerUri  string
 	ServerDomain   string
 	Certificate    string
 	ProxyUri       string
@@ -26,17 +27,6 @@ type TeslaCredential struct {
 
 func GetTeslaCredential() *TeslaCredential {
 	var teslaCredential TeslaCredential
-
-	var environment = "prod" // "local", "test", "prod"
-
-	if environment == "local" {
-		teslaCredential.CallbackUri = "http://localhost:3000/tesla_signup"
-	} else if environment == "test" {
-		teslaCredential.CallbackUri = "https://test.moovetrax.com/tesla_signup"
-
-	} else if environment == "prod" {
-		teslaCredential.CallbackUri = "https://fleetapi.moovetrax.com/device_signup"
-	}
 
 	var certificate = `-----BEGIN CERTIFICATE-----
 MIICZjCCAcegAwIBAgIUb3SeJMsfe5V7ER9m3ZXtp0nltDgwCgYIKoZIzj0EAwIw
@@ -53,7 +43,7 @@ gYgCQgDB2t8wcLm+wFQA1uGYV124e8YHKKU5gHZZP1BNarKIDOkgg27nWvrTqEje
 DKR57K6rGLQk04wfNG6AqqwKpYHCJQJCAWUIxP8V5afBj3OosLsH266CNrvU+0F8
 g+nCMaavadk/8KExFVxQTkdyPLjZDQM2+VkReuzu9GteonN+zGa7cuVo
 -----END CERTIFICATE-----` // cert.pem
-
+	teslaCredential.CallbackUri = "https://fleetapi.moovetrax.com/device_signup"
 	teslaCredential.ClientID = "60d97918-9b6b-4c92-88e3-ff9e9403239f"
 	teslaCredential.SecretKey = "ta-secret.8p8Jz&Y^%n9FCCeE"
 	teslaCredential.RootDomain = "https://moovetrax.com"
@@ -62,6 +52,8 @@ g+nCMaavadk/8KExFVxQTkdyPLjZDQM2+VkReuzu9GteonN+zGa7cuVo
 	teslaCredential.ServerDomain = "fleetapi.moovetrax.com"
 	teslaCredential.Port = 8443
 	teslaCredential.ProxyUri = "https://fleetapi.moovetrax.com:4443"
+
+	teslaCredential.TestServerUri = "https://test.moovetrax.com"
 
 	return &teslaCredential
 }
