@@ -69,6 +69,8 @@ func ConnectDevice(c *gin.Context) {
 
 	fieldToStream1 := "Location"
 	fieldToStream2 := "BatteryLevel"
+	fieldToStream3 := "VehicleSpeed"
+	fieldToStream4 := "Odometer"
 
 	telemetryData := TelemetryRequest{
 		Config: Config{
@@ -80,12 +82,22 @@ func ConnectDevice(c *gin.Context) {
 				fieldToStream1: {
 					ResendIntervalSeconds: 60,
 					MinimumDelta:          1,
-					IntervalSeconds:       30,
+					IntervalSeconds:       60,
 				},
 				fieldToStream2: {
 					ResendIntervalSeconds: 60,
 					MinimumDelta:          1,
-					IntervalSeconds:       30,
+					IntervalSeconds:       60,
+				},
+				fieldToStream3: {
+					ResendIntervalSeconds: 60,
+					MinimumDelta:          1,
+					IntervalSeconds:       60,
+				},
+				fieldToStream4: {
+					ResendIntervalSeconds: 60,
+					MinimumDelta:          1,
+					IntervalSeconds:       60,
 				},
 			},
 			CA:       config.GetTeslaCredential().Certificate,
