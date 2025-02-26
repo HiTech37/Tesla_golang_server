@@ -14,15 +14,21 @@ type TelemetryTesla struct {
 	ID                uint      `gorm:"primaryKey"`
 	LocationLatitude  float64   `json:"location_latitude"`
 	LocationLongitude float64   `json:"location_longitude"`
-	BatteryLevel      string    `json:"charge_state"`
+	BatteryLevel      float64   `json:"battery_level"`
+	Odometer          float64   `json:"odometer"`
+	VehicleSpeed      float64   `json:"vehicle_speed"`
+	Vin               string    `json:"vin"`
 	CreatedAt         time.Time `json:"createdAt"`
 }
 
+// TelemetryData represents the incoming JSON structure
 type TelemetryData struct {
 	CreatedAt string `json:"createdAt"`
+	Vin       string `json:"vin"`
 	Data      []struct {
 		Key   string `json:"key"`
 		Value struct {
+			DoubleValue   float64 `json:"doubleValue"`
 			LocationValue struct {
 				Latitude  float64 `json:"latitude"`
 				Longitude float64 `json:"longitude"`
@@ -36,13 +42,8 @@ func KafkaConsumer() {
 	config := &kafka.ConfigMap{
 		"bootstrap.servers": "54.161.235.213:9093",
 		"group.id":          "telemetry",
-		// "client.id":         "telemetry-service",
 		"auto.offset.reset": "earliest",
 		"message.max.bytes": 524288000,
-		// 	"security.protocol":        "SSL",
-		// 	"ssl.ca.location":          "/home/ec2-user/key_store/fleetapi.moovetrax.com/cert.pem",
-		// 	"ssl.certificate.location": "/home/ec2-user/key_store/fleetapi.moovetrax.com/fullchain_fixed.pem",
-		// 	"ssl.key.location":         "/home/ec2-user/key_store/fleetapi.moovetrax.com/privkey.pem",
 	}
 
 	consumer, err := kafka.NewConsumer(config)
@@ -58,8 +59,6 @@ func KafkaConsumer() {
 	}
 
 	fmt.Println("Kafka consumer is running...")
-
-	// Continuously consume messages
 	for {
 		msg, err := consumer.ReadMessage(-1)
 		if err == nil {
@@ -79,19 +78,24 @@ func KafkaConsumer() {
 				continue
 			}
 
-			var latitude, longitude float64
-			var batteryLevel string
+			// Initialize variables to capture telemetry values
+			var latitude, longitude, batteryLevel, odometer, vehicleSpeed float64
+			var vin string
 
-			// Extract Location and batteryLevel data
+			// Extract data
+			vin = telemetryData.Vin // Capture VIN
+
 			for _, item := range telemetryData.Data {
-				if item.Key == "Location" {
+				switch item.Key {
+				case "Location":
 					latitude = item.Value.LocationValue.Latitude
 					longitude = item.Value.LocationValue.Longitude
-				} else if item.Key == "BatteryLevel" {
-					batteryLevelBytes, err := json.Marshal(item.Value)
-					if err == nil {
-						batteryLevel = string(batteryLevelBytes)
-					}
+				case "BatteryLevel":
+					batteryLevel = item.Value.DoubleValue
+				case "Odometer":
+					odometer = item.Value.DoubleValue
+				case "VehicleSpeed":
+					vehicleSpeed = item.Value.DoubleValue
 				}
 			}
 
@@ -101,11 +105,15 @@ func KafkaConsumer() {
 					LocationLatitude:  latitude,
 					LocationLongitude: longitude,
 					BatteryLevel:      batteryLevel,
+					Odometer:          odometer,
+					VehicleSpeed:      vehicleSpeed,
+					Vin:               vin,
 					CreatedAt:         createdAt,
 				}
 
 				fmt.Println("=>", telemetry)
 
+				// Uncomment and adjust the following lines if you're using GORM for database operations
 				// if err := db.WithContext(context.Background()).Create(&telemetry).Error; err != nil {
 				// 	log.Printf("Failed to save to database: %s", err)
 				// } else {
