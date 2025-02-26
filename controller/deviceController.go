@@ -54,6 +54,19 @@ type DeviceInfoParams struct {
 	ShareStatus  map[string]bool `json:"checkStatus"`
 }
 
+type VehicleInfoParams struct {
+	Response struct {
+		Color         string `json:"color"`
+		VehicleID     int    `json:"vehicle_id"`
+		VehicleConfig struct {
+			CarType float64 `json:"car_type"`
+		} `json:"vehicle_config"`
+		VehicleState struct {
+			Odometer float64 `json:"car_version"`
+		} `json:"vehicle_state"`
+	} `json:"response"`
+}
+
 func ConnectDevice(c *gin.Context) {
 	var requestParams RequestConnectParams
 	if err := c.ShouldBindJSON(&requestParams); err != nil {
@@ -492,9 +505,9 @@ func UpdateDeviceInfo(c *gin.Context) {
 
 			body, _ := io.ReadAll(resp.Body)
 
-			var jsonData map[string]interface{}
-			json.Unmarshal([]byte(string(body)), &jsonData)
-			fmt.Println(jsonData)
+			var vehicleInfoParams VehicleInfoParams
+			json.Unmarshal([]byte(string(body)), &vehicleInfoParams)
+			fmt.Println(vehicleInfoParams.Response.VehicleConfig.CarType, vehicleInfoParams.Response)
 		}
 	}
 
