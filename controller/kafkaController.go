@@ -101,17 +101,17 @@ func KafkaConsumer() {
 
 			// Save data to the database if latitude and longitude are present
 			if latitude != 0 && longitude != 0 {
-				telemetry := TelemetryTesla{
-					LocationLatitude:  latitude,
-					LocationLongitude: longitude,
-					BatteryLevel:      batteryLevel,
-					Odometer:          odometer,
-					VehicleSpeed:      vehicleSpeed,
-					Vin:               vin,
-					CreatedAt:         createdAt,
-				}
+				// telemetry := TelemetryTesla{
+				// 	LocationLatitude:  latitude,
+				// 	LocationLongitude: longitude,
+				// 	BatteryLevel:      batteryLevel,
+				// 	Odometer:          odometer,
+				// 	VehicleSpeed:      vehicleSpeed,
+				// 	Vin:               vin,
+				// 	CreatedAt:         createdAt,
+				// }
 
-				fmt.Println("=>", telemetry)
+				// fmt.Println("=>", telemetry)
 
 				// Uncomment and adjust the following lines if you're using GORM for database operations
 				// if err := db.WithContext(context.Background()).Create(&telemetry).Error; err != nil {

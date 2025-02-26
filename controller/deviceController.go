@@ -561,8 +561,7 @@ func UpdateDeviceInfo(c *gin.Context) {
 		return
 	}
 
-	// Create POST request
-	url := "https://test.moovetrax.com/api/tesla_device_signup"
+	url := config.GetTeslaCredential().TestServerUri + "/api/tesla_device_signup"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Println("Error creating request:", err)
