@@ -555,7 +555,43 @@ func UpdateDeviceInfo(c *gin.Context) {
 	payload.ShareInfo["abi_insurance"] = deviceInfoParams.ShareStatus["abi_insurance"]
 	payload.ShareInfo["tint_ai"] = deviceInfoParams.ShareStatus["tint_ai"]
 
-	// Return response
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Println("Error marshalling JSON:", err)
+		return
+	}
+
+	// Create POST request
+	url := "https://test.moovetrax.com/api/tesla_device_signup"
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return
+	}
+
+	// Set headers
+	req.Header.Set("Content-Type", "application/json")
+
+	// Send the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error making request:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read the response
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response:", err)
+		return
+	}
+
+	// Print the response
+	fmt.Println("Response Status:", resp.Status)
+	fmt.Println("Response Body:", string(body))
+
 	c.JSON(http.StatusOK, gin.H{
 		"data": payload,
 		"msg":  "done!",
