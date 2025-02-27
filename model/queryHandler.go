@@ -35,6 +35,8 @@ type Position struct {
 	BatteryLevel float64   `json:"batteryLevel" gorm:"column:mt2v_dc_volt"`
 	Odometer     float64   `json:"odometer"`
 	DeviceTime   time.Time `json:"deviceTime" gorm:"column:deviceTime"`
+	CreatedAt    time.Time `json:"createdAt" gorm:"column:createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt" gorm:"column:updatedAt"`
 }
 
 func UpdateDeviceAuthTokensbyVin(accessToken string, refreshToken string, vin string) error {
@@ -139,6 +141,8 @@ func AddPositionInfo(position Position, vin string) error {
 	}
 
 	position.DeviceId = int(device.ID)
+	position.CreatedAt = time.Now()
+	position.UpdatedAt = time.Now()
 	if err := db.Create(&position).Error; err != nil {
 		return err
 	}

@@ -73,7 +73,8 @@ func KafkaConsumer() {
 			}
 
 			// Parse datetime
-			createdAt, err := time.Parse(time.RFC3339, telemetryData.CreatedAt)
+			createdAt := time.Now()
+			createdAt, err = time.Parse(time.RFC3339, telemetryData.CreatedAt)
 			if err != nil {
 				log.Printf("Failed to parse datetime: %s", err)
 				continue
