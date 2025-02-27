@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"tesla_server/config"
 	"time"
 )
@@ -89,6 +90,7 @@ func GetDeviceByVin(vin string) ([]Device, error) {
 }
 
 func UpdateDeviceInfoByVin(deviceInfo Device) error {
+	fmt.Println(deviceInfo)
 	db, err := config.InitDb()
 	if err != nil {
 		return err
