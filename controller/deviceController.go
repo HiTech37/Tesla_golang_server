@@ -300,6 +300,7 @@ func ConnectDevice(vins []string, accessToken string) bool {
 
 	fmt.Println("debug1=>", jsonData.Data.Response)
 	fmt.Println("debug2=>", skippedVehicles)
+	fmt.Println("debug3=>", vins[0])
 
 	if contains(skippedVehicles.MissingKey, vins[0]) ||
 		contains(skippedVehicles.UnsupportedFirmware, vins[0]) ||
