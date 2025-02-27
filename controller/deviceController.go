@@ -81,16 +81,20 @@ type Payload struct {
 	ShareInfo    map[string]bool `json:"shareInfo"`
 }
 
-type ConnectDeviceResponseData struct {
-	Response struct {
-		SkippedVehicles struct {
-			MaxConfigs          []string `json:"max_configs"`
-			MissingKey          []string `json:"missing_key"`
-			UnsupportedFirmware []string `json:"unsupported_firmware"`
-			UnsupportedHardware []string `json:"unsupported_hardware"`
-		} `json:"skipped_vehicles"`
-		UpdatedVehicles int `json:"updated_vehicles"`
-	} `json:"response"`
+type SkippedVehicles struct {
+	MissingKey          []string `json:"missing_key"`
+	UnsupportedHardware []string `json:"unsupported_hardware"`
+	UnsupportedFirmware []string `json:"unsupported_firmware"`
+	MaxConfigs          []string `json:"max_configs"`
+}
+
+type ResponseData struct {
+	UpdatedVehicles int              `json:"updated_vehicles"`
+	SkippedVehicles *SkippedVehicles `json:"skipped_vehicles,omitempty"`
+}
+
+type Root struct {
+	Response ResponseData `json:"response"`
 }
 
 func ConnectDeviceforTest(c *gin.Context) {
@@ -292,16 +296,12 @@ func ConnectDevice(vins []string, accessToken string, refreshToken string) int {
 
 	body, _ := io.ReadAll(resp.Body)
 
-	var jsonData struct {
-		Data ConnectDeviceResponseData `json:"data"`
-	}
+	var jsonData Root
 	json.Unmarshal([]byte(string(body)), &jsonData)
-	skippedVehicles := jsonData.Data.Response.SkippedVehicles
 
 	fmt.Println("debug1=>", string(body))
 	fmt.Println("debug2=>", jsonData)
-	fmt.Println("debug3=>", jsonData.Data.Response.UpdatedVehicles)
-	fmt.Println("debug4=>", skippedVehicles)
+	fmt.Println("debug3=>", jsonData.Response.UpdatedVehicles)
 	fmt.Println("debug5=>", vins[0])
 
 	return 0
