@@ -109,6 +109,7 @@ func KafkaConsumer() {
 				device.Speed = int(vehicleSpeed)
 				device.Vin = vin
 
+				fmt.Println("=>", device)
 				err := model.UpdateDeviceInfoByVin(device)
 				if err != nil {
 					fmt.Println(err)
