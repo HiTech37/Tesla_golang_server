@@ -311,7 +311,13 @@ func ConnectDevice(vins []string, accessToken string, refreshToken string) int {
 			contains(skippedVehicles.UnsupportedHardware, vins[0]) {
 			return 1
 		} else {
-			utils.RefreshAuthToken(refreshToken, vins[0])
+			fmt.Println("debug4=>", refreshToken)
+			teslaAuthToken, err := utils.RefreshAuthToken(refreshToken, vins[0])
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			fmt.Println(teslaAuthToken)
 			return 0
 		}
 	}
