@@ -73,7 +73,7 @@ func KafkaConsumer() {
 			}
 
 			// Parse datetime
-			// createdAt, err := time.Parse(time.RFC3339, telemetryData.CreatedAt)
+			createdAt, err := time.Parse(time.RFC3339, telemetryData.CreatedAt)
 			if err != nil {
 				log.Printf("Failed to parse datetime: %s", err)
 				continue
@@ -101,24 +101,36 @@ func KafkaConsumer() {
 			}
 
 			var device model.Device
+			var position model.Position
 			if batteryLevel != 0 {
 				device.BatteryLevel = batteryLevel
+				position.BatteryLevel = batteryLevel
 			}
 			if latitude != 0 && longitude != 0 {
 				device.Latitude = latitude
+				position.Latitude = latitude
 				device.Longitude = longitude
+				position.Longitude = longitude
 			}
 			if odometer != 0 {
 				device.Odometer = odometer
+				position.Odometer = odometer
 			}
 			device.Speed = int(vehicleSpeed)
+			position.Speed = int(vehicleSpeed)
 			device.Vin = vin
 
-			fmt.Println("=>", device)
 			err = model.UpdateDeviceInfoByVin(device)
 			if err != nil {
 				fmt.Println(err)
 			}
+
+			position.DeviceTime = createdAt
+			err = model.AddPositionInfo(position, vin)
+			if err != nil {
+				fmt.Println(err)
+			}
+
 		} else {
 			fmt.Printf("Consumer error: %v (%v)\n", err, msg)
 		}

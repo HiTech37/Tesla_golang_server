@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"tesla_server/config"
 	"time"
 )
@@ -19,13 +18,23 @@ type Device struct {
 	TeslaStream   int       `json:"tesla_stream"`
 	Latitude      float64   `json:"latitude"`
 	Longitude     float64   `json:"longitude"`
-	Speed         int       `json:"speed"`
+	Speed         int       `json:"speed" gorm:"column:speed"`
 	BatteryLevel  float64   `json:"batteryLevel" gorm:"column:mt2v_dc_volt"`
 	PrevOdometer  float64   `json:"prevOdometer" gorm:"column:prev_od"`
 	Odometer      float64   `json:"odometer"`
 	Status        string    `json:"status"`
 	LastPosition  time.Time `json:"lastPosition" gorm:"column:lastPosition"`
 	LastConnect   time.Time `json:"lastConnect" gorm:"column:lastConnect"`
+}
+
+type Position struct {
+	DeviceId     int       `json:"deviceId"`
+	Latitude     float64   `json:"latitude"`
+	Longitude    float64   `json:"longitude"`
+	Speed        int       `json:"speed" gorm:"column:speed"`
+	BatteryLevel float64   `json:"batteryLevel" gorm:"column:mt2v_dc_volt"`
+	Odometer     float64   `json:"odometer"`
+	DeviceTime   time.Time `json:"deviceTime" gorm:"column:deviceTime"`
 }
 
 func UpdateDeviceAuthTokensbyVin(accessToken string, refreshToken string, vin string) error {
@@ -90,7 +99,6 @@ func GetDeviceByVin(vin string) ([]Device, error) {
 }
 
 func UpdateDeviceInfoByVin(deviceInfo Device) error {
-	fmt.Println(deviceInfo)
 	db, err := config.InitDb()
 	if err != nil {
 		return err
@@ -117,4 +125,23 @@ func UpdateDeviceInfoByVin(deviceInfo Device) error {
 
 	return nil
 
+}
+
+func AddPositionInfo(position Position, vin string) error {
+	db, err := config.InitDb()
+	if err != nil {
+		return err
+	}
+
+	var device Device
+	if err := db.Where("vin = ?", vin).First(&device).Error; err != nil {
+		return err
+	}
+
+	position.DeviceId = int(device.ID)
+	if err := db.Create(&position).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
