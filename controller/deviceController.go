@@ -298,7 +298,7 @@ func ConnectDevice(vins []string, accessToken string) bool {
 	json.Unmarshal([]byte(string(body)), &jsonData)
 	skippedVehicles := jsonData.Data.Response.SkippedVehicles
 
-	fmt.Println("debug1=>", jsonData.Data.Response)
+	fmt.Println("debug1=>", jsonData)
 	fmt.Println("debug2=>", skippedVehicles)
 	fmt.Println("debug3=>", vins[0])
 
