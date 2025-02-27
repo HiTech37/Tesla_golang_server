@@ -10,11 +10,11 @@ type Device struct {
 	Vin           string `json:"vin"`
 	AccessToken   string `json:"accessToken"`
 	RefreshToken  string `json:"refreshToken"`
-	IsPaid        string `json:"is_paid"`
+	IsPaid        int    `json:"is_paid"`
 	BillingSource string `json:"billing_source"`
 	MonthlyCost   string `json:"monthly_cost"`
 	Credit        string `json:"credit"`
-	TeslaStream   string `json:"tesla_stream"`
+	TeslaStream   int    `json:"tesla_stream"`
 }
 
 func UpdateDeviceAuthTokensbyVin(accessToken string, refreshToken string, vin string) error {
