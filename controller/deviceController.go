@@ -304,6 +304,8 @@ func ConnectDevice(vins []string, accessToken string, refreshToken string) int {
 	fmt.Println("debug4=>", skippedVehicles)
 	fmt.Println("debug5=>", vins[0])
 
+	return 0
+
 	// if jsonData.Data.Response.UpdatedVehicles == 1 {
 	// 	return 2
 	// } else {
