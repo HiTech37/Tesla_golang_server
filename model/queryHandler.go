@@ -28,7 +28,7 @@ type Device struct {
 }
 
 type Position struct {
-	DeviceId     int       `json:"deviceId"`
+	DeviceId     int       `json:"deviceId" gorm:"column:deviceId"`
 	Latitude     float64   `json:"latitude"`
 	Longitude    float64   `json:"longitude"`
 	Speed        int       `json:"speed" gorm:"column:speed"`
