@@ -32,6 +32,7 @@ func checkDeviceCredit() {
 		vins = nil
 		vins = append(vins, device.Vin)
 		result := ConnectDevice(vins, device.AccessToken)
+
 		if result {
 			tesla_stream = 2
 		} else {

@@ -296,8 +296,11 @@ func ConnectDevice(vins []string, accessToken string) bool {
 		Data ConnectDeviceResponseData `json:"data"`
 	}
 	json.Unmarshal([]byte(string(body)), &jsonData)
-
 	skippedVehicles := jsonData.Data.Response.SkippedVehicles
+
+	fmt.Println("debug1=>", jsonData.Data.Response)
+	fmt.Println("debug2=>", skippedVehicles)
+
 	if contains(skippedVehicles.MissingKey, vins[0]) ||
 		contains(skippedVehicles.UnsupportedFirmware, vins[0]) ||
 		contains(skippedVehicles.UnsupportedHardware, vins[0]) {
