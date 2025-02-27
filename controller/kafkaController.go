@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"tesla_server/model"
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
@@ -72,7 +73,7 @@ func KafkaConsumer() {
 			}
 
 			// Parse datetime
-			createdAt, err := time.Parse(time.RFC3339, telemetryData.CreatedAt)
+			// createdAt, err := time.Parse(time.RFC3339, telemetryData.CreatedAt)
 			if err != nil {
 				log.Printf("Failed to parse datetime: %s", err)
 				continue
@@ -83,7 +84,7 @@ func KafkaConsumer() {
 			var vin string
 
 			// Extract data
-			vin = telemetryData.Vin // Capture VIN
+			vin = telemetryData.Vin
 
 			for _, item := range telemetryData.Data {
 				switch item.Key {
@@ -99,34 +100,22 @@ func KafkaConsumer() {
 				}
 			}
 
-			// Save data to the database if latitude and longitude are present
 			if latitude != 0 && longitude != 0 {
-				telemetry := TelemetryTesla{
-					LocationLatitude:  latitude,
-					LocationLongitude: longitude,
-					BatteryLevel:      batteryLevel,
-					Odometer:          odometer,
-					VehicleSpeed:      vehicleSpeed,
-					Vin:               vin,
-					CreatedAt:         createdAt,
+				var device model.Device
+				device.BatteryLevel = batteryLevel
+				device.Latitude = latitude
+				device.Longitude = longitude
+				device.Odometer = odometer
+				device.Speed = int(vehicleSpeed)
+				device.Vin = vin
+
+				err := model.UpdateDeviceInfoByVin(device)
+				if err != nil {
+					fmt.Println(err)
 				}
-
-				test(telemetry)
-
-				// Uncomment and adjust the following lines if you're using GORM for database operations
-				// if err := db.WithContext(context.Background()).Create(&telemetry).Error; err != nil {
-				// 	log.Printf("Failed to save to database: %s", err)
-				// } else {
-				// 	fmt.Printf("Saved to database: %+v\n", telemetry)
-				// }
 			}
 		} else {
-			// Log consumer errors
 			fmt.Printf("Consumer error: %v (%v)\n", err, msg)
 		}
 	}
-}
-
-func test(telemetry TelemetryTesla) {
-
 }

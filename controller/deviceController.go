@@ -299,23 +299,15 @@ func ConnectDevice(vins []string, accessToken string, refreshToken string) int {
 
 	var jsonData Root
 	json.Unmarshal([]byte(string(body)), &jsonData)
-
-	fmt.Println("debug1=>", string(body))
-	fmt.Println("debug2=>", jsonData)
-	fmt.Println("debug3=>", jsonData.Response.UpdatedVehicles)
-	fmt.Println("debug5=>", vins[0])
-
 	if jsonData.Response.UpdatedVehicles == 1 {
 		return 2
 	} else if jsonData.Response.UpdatedVehicles == 0 {
 		return 1
 	} else {
-		fmt.Println("debug4=>", refreshToken)
 		_, err := utils.RefreshAuthToken(refreshToken, vins[0])
 		if err != nil {
 			fmt.Println(err)
 		}
-
 		return 0
 	}
 }
