@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	config "tesla_server/config"
+	"tesla_server/utils"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -304,26 +305,19 @@ func ConnectDevice(vins []string, accessToken string, refreshToken string) int {
 	fmt.Println("debug3=>", jsonData.Response.UpdatedVehicles)
 	fmt.Println("debug5=>", vins[0])
 
-	return 0
+	if jsonData.Response.UpdatedVehicles == 1 {
+		return 2
+	} else if jsonData.Response.UpdatedVehicles == 0 {
+		return 1
+	} else {
+		fmt.Println("debug4=>", refreshToken)
+		_, err := utils.RefreshAuthToken(refreshToken, vins[0])
+		if err != nil {
+			fmt.Println(err)
+		}
 
-	// if jsonData.Data.Response.UpdatedVehicles == 1 {
-	// 	return 2
-	// } else {
-	// 	if contains(skippedVehicles.MissingKey, vins[0]) ||
-	// 		contains(skippedVehicles.UnsupportedFirmware, vins[0]) ||
-	// 		contains(skippedVehicles.UnsupportedHardware, vins[0]) {
-	// 		return 1
-	// 	} else {
-	// 		fmt.Println("debug4=>", refreshToken)
-	// 		teslaAuthToken, err := utils.RefreshAuthToken(refreshToken, vins[0])
-	// 		if err != nil {
-	// 			fmt.Println(err)
-	// 		}
-
-	// 		fmt.Println(teslaAuthToken)
-	// 		return 0
-	// 	}
-	// }
+		return 0
+	}
 }
 
 func contains(slice []string, value string) bool {
