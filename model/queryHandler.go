@@ -21,7 +21,7 @@ type Device struct {
 	Longitude     float64   `json:"longitude"`
 	Speed         int       `json:"speed"`
 	BatteryLevel  float64   `json:"batteryLevel" gorm:"column:mt2v_dc_volt"`
-	PrevOdometer  float64   `json:"prev_od"`
+	PrevOdometer  float64   `json:"prevOdometer" gorm:"prev_od"`
 	Odometer      float64   `json:"odometer"`
 	Status        string    `json:"status"`
 	LastPosition  time.Time `json:"lastPosition" gorm:"column:lastPosition"`
