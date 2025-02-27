@@ -298,8 +298,8 @@ func ConnectDevice(vins []string, accessToken string) bool {
 	json.Unmarshal([]byte(string(body)), &jsonData)
 	skippedVehicles := jsonData.Data.Response.SkippedVehicles
 
-	fmt.Println("debug1=>", jsonData)
-	fmt.Println("debug2=>", skippedVehicles)
+	fmt.Println("debug1=>", string(body))
+	fmt.Println("debug2=>", jsonData)
 	fmt.Println("debug3=>", vins[0])
 
 	if contains(skippedVehicles.MissingKey, vins[0]) ||
