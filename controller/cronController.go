@@ -1,26 +1,26 @@
 package controller
 
 import (
+	"fmt"
 	"tesla_server/model"
+	"time"
 )
 
 func CronJobs() {
-	// checkDeviceCreditTicker := time.NewTicker(1 * time.Minute)
-	// minuteTicker := time.NewTicker(10 * time.Minute)
-	// // hourTicker := time.NewTicker(1 * time.Hour)
-	// go func() {
-	// 	for {
-	// 		select {
-	// 		case <-checkDeviceCreditTicker.C:
-	// 			go checkDeviceCredit()
-	// 		case <-minuteTicker.C:
-	// 			// go safeJob()
-	// 			fmt.Println("run sec")
-	// 		}
-	// 	}
-	// }()
-
-	checkDeviceCredit()
+	checkDeviceCreditTicker := time.NewTicker(1 * time.Minute)
+	minuteTicker := time.NewTicker(10 * time.Minute)
+	// hourTicker := time.NewTicker(1 * time.Hour)
+	go func() {
+		for {
+			select {
+			case <-checkDeviceCreditTicker.C:
+				go checkDeviceCredit()
+			case <-minuteTicker.C:
+				// go safeJob()
+				fmt.Println("run sec")
+			}
+		}
+	}()
 }
 
 func checkDeviceCredit() {
@@ -28,16 +28,10 @@ func checkDeviceCredit() {
 	devices, _ = model.GetDevicesByTeslaStream(0)
 	var vins []string
 	for _, device := range devices {
-		tesla_stream := 0
 		vins = nil
 		vins = append(vins, device.Vin)
-		result := ConnectDevice(vins, device.AccessToken)
+		result := ConnectDevice(vins, device.AccessToken, device.RefreshToken)
 
-		if result {
-			tesla_stream = 2
-		} else {
-			tesla_stream = 1
-		}
-		model.UpdateDeviceTeslaStreambyVin(device.Vin, tesla_stream)
+		model.UpdateDeviceTeslaStreambyVin(device.Vin, result)
 	}
 }

@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	config "tesla_server/config"
+	"tesla_server/utils"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -205,7 +206,7 @@ func ConnectDeviceforTest(c *gin.Context) {
 	})
 }
 
-func ConnectDevice(vins []string, accessToken string) bool {
+func ConnectDevice(vins []string, accessToken string, refreshToken string) int {
 
 	base := config.GetTeslaCredential().ProxyUri
 	path := "/api/1/vehicles/fleet_telemetry_config"
@@ -253,7 +254,7 @@ func ConnectDevice(vins []string, accessToken string) bool {
 	payload, err := json.Marshal(telemetryData)
 	if err != nil {
 		fmt.Println("Failed to marshal JSON data")
-		return false
+		return 0
 	}
 
 	certPEM := config.GetTeslaCredential().Certificate
@@ -277,7 +278,7 @@ func ConnectDevice(vins []string, accessToken string) bool {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		log.Fatal("Error creating request")
-		return false
+		return 0
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -286,7 +287,7 @@ func ConnectDevice(vins []string, accessToken string) bool {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Error making request:")
-		return false
+		return 0
 	}
 	defer resp.Body.Close()
 
@@ -302,15 +303,18 @@ func ConnectDevice(vins []string, accessToken string) bool {
 	fmt.Println("debug2=>", jsonData)
 	fmt.Println("debug3=>", vins[0])
 
-	if contains(skippedVehicles.MissingKey, vins[0]) ||
-		contains(skippedVehicles.UnsupportedFirmware, vins[0]) ||
-		contains(skippedVehicles.UnsupportedHardware, vins[0]) {
-
-		fmt.Println("VIN found in one of the arrays!", vins[0])
-		return false
+	if jsonData.Data.Response.UpdatedVehicles == 1 {
+		return 2
+	} else {
+		if contains(skippedVehicles.MissingKey, vins[0]) ||
+			contains(skippedVehicles.UnsupportedFirmware, vins[0]) ||
+			contains(skippedVehicles.UnsupportedHardware, vins[0]) {
+			return 1
+		} else {
+			utils.RefreshAuthToken(refreshToken, vins[0])
+			return 0
+		}
 	}
-
-	return true
 }
 
 func contains(slice []string, value string) bool {

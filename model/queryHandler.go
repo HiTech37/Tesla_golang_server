@@ -9,6 +9,7 @@ type Device struct {
 	VehicleID     string `json:"vehicleId"`
 	Vin           string `json:"vin"`
 	AccessToken   string `json:"accessToken"`
+	RefreshToken  string `json:"refreshToken"`
 	IsPaid        string `json:"is_paid"`
 	BillingSource string `json:"billing_source"`
 	MonthlyCost   string `json:"monthly_cost"`
