@@ -111,7 +111,7 @@ func KafkaConsumer() {
 					CreatedAt:         createdAt,
 				}
 
-				fmt.Println("=>", telemetry)
+				test(telemetry)
 
 				// Uncomment and adjust the following lines if you're using GORM for database operations
 				// if err := db.WithContext(context.Background()).Create(&telemetry).Error; err != nil {
@@ -125,4 +125,8 @@ func KafkaConsumer() {
 			fmt.Printf("Consumer error: %v (%v)\n", err, msg)
 		}
 	}
+}
+
+func test(telemetry TelemetryTesla) {
+
 }

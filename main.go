@@ -24,12 +24,13 @@ func main() {
 	}))
 
 	go controller.KafkaConsumer()
+	go controller.CronJobs()
 
 	r.GET("/api/tesla_signup", controller.GetTeslaSigninURI)
 	r.GET("/api/requestAuth", controller.RequestAuth)
 	r.GET("/api/getAllVehichles", controller.GetAllVehicles)
 	r.POST("/api/sendCommand", controller.HandleCommand)
-	r.POST("/api/connectServer", controller.ConnectDevice)
+	r.POST("/api/connectServer", controller.ConnectDeviceforTest)
 	r.POST("/api/getConfigStatus", controller.GetDeviceConfigStatus)
 	r.POST("/api/getFleetTelemetryError", controller.GetFleetTelemetryError)
 	r.POST("/api/getFleetStatus", controller.GetFleetStatus)

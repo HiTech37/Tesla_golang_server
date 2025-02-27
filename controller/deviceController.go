@@ -81,7 +81,19 @@ type Payload struct {
 	ShareInfo    map[string]bool `json:"shareInfo"`
 }
 
-func ConnectDevice(c *gin.Context) {
+type ConnectDeviceResponseData struct {
+	Response struct {
+		SkippedVehicles struct {
+			MaxConfigs          []string `json:"max_configs"`
+			MissingKey          []string `json:"missing_key"`
+			UnsupportedFirmware []string `json:"unsupported_firmware"`
+			UnsupportedHardware []string `json:"unsupported_hardware"`
+		} `json:"skipped_vehicles"`
+		UpdatedVehicles int `json:"updated_vehicles"`
+	} `json:"response"`
+}
+
+func ConnectDeviceforTest(c *gin.Context) {
 	var requestParams RequestConnectParams
 	if err := c.ShouldBindJSON(&requestParams); err != nil {
 		fmt.Println(err.Error())
@@ -191,6 +203,119 @@ func ConnectDevice(c *gin.Context) {
 		"msg":  "done!",
 		"data": jsonData,
 	})
+}
+
+func ConnectDevice(vins []string, accessToken string) bool {
+
+	base := config.GetTeslaCredential().ProxyUri
+	path := "/api/1/vehicles/fleet_telemetry_config"
+	url := fmt.Sprintf("%s%s", base, path)
+
+	fieldToStream1 := "Location"
+	fieldToStream2 := "BatteryLevel"
+	fieldToStream3 := "VehicleSpeed"
+	fieldToStream4 := "Odometer"
+
+	telemetryData := TelemetryRequest{
+		Config: Config{
+			PreferTyped: true,
+			Port:        8443,
+			Exp:         1770670000,
+			AlertTypes:  []string{"service"},
+			Fields: map[string]FieldConfig{
+				fieldToStream1: {
+					ResendIntervalSeconds: 3600,
+					MinimumDelta:          1,
+					IntervalSeconds:       60,
+				},
+				fieldToStream2: {
+					ResendIntervalSeconds: 3600,
+					MinimumDelta:          1,
+					IntervalSeconds:       60,
+				},
+				fieldToStream3: {
+					ResendIntervalSeconds: 3600,
+					MinimumDelta:          1,
+					IntervalSeconds:       60,
+				},
+				fieldToStream4: {
+					ResendIntervalSeconds: 3600,
+					MinimumDelta:          1,
+					IntervalSeconds:       60,
+				},
+			},
+			CA:       config.GetTeslaCredential().Certificate,
+			Hostname: config.GetTeslaCredential().ServerDomain,
+		},
+		Vins: vins,
+	}
+
+	payload, err := json.Marshal(telemetryData)
+	if err != nil {
+		fmt.Println("Failed to marshal JSON data")
+		return false
+	}
+
+	certPEM := config.GetTeslaCredential().Certificate
+
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+		log.Fatal("Failed to append certificate")
+	}
+
+	tlsConfig := &tls.Config{
+		RootCAs:    certPool,
+		ServerName: config.GetTeslaCredential().ServerDomain,
+	}
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		log.Fatal("Error creating request")
+		return false
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Error making request:")
+		return false
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	var jsonData struct {
+		Data ConnectDeviceResponseData `json:"data"`
+	}
+	json.Unmarshal([]byte(string(body)), &jsonData)
+
+	skippedVehicles := jsonData.Data.Response.SkippedVehicles
+	if contains(skippedVehicles.MissingKey, vins[0]) ||
+		contains(skippedVehicles.UnsupportedFirmware, vins[0]) ||
+		contains(skippedVehicles.UnsupportedHardware, vins[0]) {
+
+		fmt.Println("VIN found in one of the arrays!", vins[0])
+		return false
+	}
+
+	return true
+}
+
+func contains(slice []string, value string) bool {
+	for _, v := range slice {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }
 
 func GetDeviceConfigStatus(c *gin.Context) {
