@@ -30,9 +30,7 @@ func checkDeviceCredit() {
 	for _, device := range devices {
 		vins = nil
 		vins = append(vins, device.Vin)
-		fmt.Println("deviceData=>", device)
 		result := ConnectDevice(vins, device.AccessToken, device.RefreshToken)
-
 		model.UpdateDeviceTeslaStreambyVin(device.Vin, result)
 	}
 }
