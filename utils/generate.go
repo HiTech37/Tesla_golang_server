@@ -1,13 +1,12 @@
 package utils
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
-	"net/url"
+	"strings"
 	"tesla_server/config"
 	"tesla_server/model"
 	"time"
@@ -34,38 +33,31 @@ type TeslaAuthToken struct {
 
 func RefreshAuthToken(refreshToken string, vin string) (TeslaAuthToken, error) {
 	var teslaAuthToken TeslaAuthToken
-	// URL for the request
-	apiURL := "https://fleet-auth.prd.vn.cloud.tesla.com/oauth2/v3/token"
+	url := "https://auth.tesla.com/oauth2/v3/token"
+	method := "POST"
+	clientID := config.GetTeslaCredential().ClientID
+	scope := config.GetTeslaCredential().DataScope
+	payload := strings.NewReader(fmt.Sprintf("grant_type=refresh_token&client_id=%s&scope=%s&refresh_token=%s", clientID, scope, refreshToken))
 
-	// Form data
-	formData := url.Values{}
-	formData.Set("grant_type", "refresh_token")
-	formData.Set("client_id", config.GetTeslaCredential().ClientID)
-	formData.Set("refresh_token", refreshToken)
-
-	// Create a new POST request
-	req, err := http.NewRequest("POST", apiURL, bytes.NewBufferString(formData.Encode()))
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return teslaAuthToken, err
-	}
-
-	// Add headers
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	// Make the HTTP request
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	req, err := http.NewRequest(method, url, payload)
+
 	if err != nil {
-		fmt.Println("Error making request:", err)
+		fmt.Println(err)
 		return teslaAuthToken, err
 	}
-	defer resp.Body.Close()
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	// Read and print the response body
-	body, err := io.ReadAll(resp.Body)
+	res, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error reading response:", err)
+		fmt.Println(err)
+		return teslaAuthToken, err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
 		return teslaAuthToken, err
 	}
 
