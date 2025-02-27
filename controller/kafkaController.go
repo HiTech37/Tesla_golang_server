@@ -100,20 +100,24 @@ func KafkaConsumer() {
 				}
 			}
 
-			if latitude != 0 && longitude != 0 {
-				var device model.Device
+			var device model.Device
+			if batteryLevel != 0 {
 				device.BatteryLevel = batteryLevel
+			}
+			if latitude != 0 && longitude != 0 {
 				device.Latitude = latitude
 				device.Longitude = longitude
+			}
+			if odometer != 0 {
 				device.Odometer = odometer
-				device.Speed = int(vehicleSpeed)
-				device.Vin = vin
+			}
+			device.Speed = int(vehicleSpeed)
+			device.Vin = vin
 
-				fmt.Println("=>", device)
-				err := model.UpdateDeviceInfoByVin(device)
-				if err != nil {
-					fmt.Println(err)
-				}
+			fmt.Println("=>", device)
+			err = model.UpdateDeviceInfoByVin(device)
+			if err != nil {
+				fmt.Println(err)
 			}
 		} else {
 			fmt.Printf("Consumer error: %v (%v)\n", err, msg)

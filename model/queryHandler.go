@@ -20,7 +20,7 @@ type Device struct {
 	Latitude      float64   `json:"latitude"`
 	Longitude     float64   `json:"longitude"`
 	Speed         int       `json:"speed"`
-	BatteryLevel  float64   `json:"mt2v_dc_volt"`
+	BatteryLevel  float64   `json:"batteryLevel" gorm:"column:mt2v_dc_volt"`
 	PrevOdometer  float64   `json:"prev_od"`
 	Odometer      float64   `json:"odometer"`
 	Status        string    `json:"status"`
