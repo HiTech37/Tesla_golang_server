@@ -284,6 +284,7 @@ func ConnectDevice(vins []string, accessToken string, refreshToken string) int {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 
+	fmt.Println(accessToken)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Error making request:")
