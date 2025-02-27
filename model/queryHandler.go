@@ -5,16 +5,16 @@ import (
 )
 
 type Device struct {
-	ID            uint   `json:"id"`
-	VehicleID     string `json:"vehicleId"`
-	Vin           string `json:"vin"`
-	AccessToken   string `json:"accessToken"`
-	RefreshToken  string `json:"refreshToken"`
-	IsPaid        int    `json:"is_paid"`
-	BillingSource string `json:"billing_source"`
-	MonthlyCost   string `json:"monthly_cost"`
-	Credit        string `json:"credit"`
-	TeslaStream   int    `json:"tesla_stream"`
+	ID            uint    `json:"id"`
+	VehicleID     string  `json:"vehicleId"`
+	Vin           string  `json:"vin"`
+	AccessToken   string  `json:"accessToken"`
+	RefreshToken  string  `json:"refreshToken"`
+	IsPaid        int     `json:"is_paid"`
+	BillingSource string  `json:"billing_source"`
+	MonthlyCost   float64 `json:"monthly_cost"`
+	Credit        float64 `json:"credit"`
+	TeslaStream   int     `json:"tesla_stream"`
 }
 
 func UpdateDeviceAuthTokensbyVin(accessToken string, refreshToken string, vin string) error {
