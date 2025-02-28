@@ -120,15 +120,17 @@ func KafkaConsumer() {
 			position.Speed = int(vehicleSpeed)
 			device.Vin = vin
 
-			err = model.UpdateDeviceByVin(device)
-			if err != nil {
-				fmt.Println(err)
-			}
+			if latitude != 0 && longitude != 0 {
+				err = model.UpdateDeviceByVin(device)
+				if err != nil {
+					fmt.Println(err)
+				}
 
-			position.DeviceTime = createdAt
-			err = model.AddPositionInfo(position, vin)
-			if err != nil {
-				fmt.Println(err)
+				position.DeviceTime = createdAt
+				err = model.AddPositionInfo(position, vin)
+				if err != nil {
+					fmt.Println(err)
+				}
 			}
 
 		} else {
