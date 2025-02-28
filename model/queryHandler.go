@@ -127,6 +127,34 @@ func UpdateDeviceInfoByVin(deviceInfo Device) error {
 	// Update only the fields that are set (non-zero values)
 	deviceInfo.LastConnect = time.Now()
 	deviceInfo.LastPosition = time.Now()
+
+	// Set the PrevOdometer to the current Odometer value
+	deviceInfo.PrevOdometer = existingDevice.Odometer
+
+	// Update the record
+	if err := db.Model(&existingDevice).Updates(deviceInfo).Error; err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func UpdateDeviceByVin(deviceInfo Device) error {
+	db, err := config.InitDb()
+	if err != nil {
+		return err
+	}
+
+	// Get the existing device record by VIN
+	var existingDevice Device
+	if err := db.Where("vin = ?", deviceInfo.Vin).First(&existingDevice).Error; err != nil {
+		return err
+	}
+
+	// Update only the fields that are set (non-zero values)
+	deviceInfo.LastConnect = time.Now()
+	deviceInfo.LastPosition = time.Now()
 	deviceInfo.Status = "online"
 
 	// Set the PrevOdometer to the current Odometer value

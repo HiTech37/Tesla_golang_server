@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	config "tesla_server/config"
+	"tesla_server/model"
 	"tesla_server/utils"
 	"time"
 
@@ -63,13 +64,23 @@ type DeviceInfoParams struct {
 
 type VehicleInfoParams struct {
 	Response struct {
-		Color         string `json:"color"`
-		VehicleID     int    `json:"vehicle_id"`
+		Color       string `json:"color"`
+		VehicleID   int    `json:"vehicle_id"`
+		State       string `json:"state"`
+		ChargeState struct {
+			BatteryLevel float64 `json:"battery_level"`
+		} `json:"charge_state"`
 		VehicleConfig struct {
 			CarType string `json:"car_type"`
 		} `json:"vehicle_config"`
+		DriveState struct {
+			Latitude  float64 `json:"active_route_latitude"`
+			Longitude float64 `json:"active_route_longitude"`
+			Speed     int     `json:"speed"`
+		} `json:"drive_state"`
 		VehicleState struct {
-			CarVersion string `json:"car_version"`
+			CarVersion string  `json:"car_version"`
+			Odometer   float64 `json:"odometer"`
 		} `json:"vehicle_state"`
 	} `json:"response"`
 }
@@ -725,7 +736,7 @@ func UpdateDeviceInfo(c *gin.Context) {
 	})
 }
 
-func HandleUnSupportedDeviceInfo(vin string, accessToken string) error {
+func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 	base := config.GetTeslaCredential().ProxyUri
 	url := fmt.Sprintf(base+"/api/1/vehicles/%s/vehicle_data", vin)
 
@@ -770,6 +781,41 @@ func HandleUnSupportedDeviceInfo(vin string, accessToken string) error {
 	var vehicleInfoParams VehicleInfoParams
 	if err := json.Unmarshal(body, &vehicleInfoParams); err != nil {
 		return err
+	}
+
+	var device model.Device
+	var position model.Position
+	device.Vin = vin
+	if device.BatteryLevel != 0 {
+		device.BatteryLevel = vehicleInfoParams.Response.ChargeState.BatteryLevel
+		position.BatteryLevel = vehicleInfoParams.Response.ChargeState.BatteryLevel
+	}
+	if device.Latitude != 0 && device.Longitude != 0 {
+		device.Latitude = vehicleInfoParams.Response.DriveState.Latitude
+		device.Longitude = vehicleInfoParams.Response.DriveState.Longitude
+		position.Latitude = vehicleInfoParams.Response.DriveState.Latitude
+		position.Longitude = vehicleInfoParams.Response.DriveState.Longitude
+	}
+	if device.Odometer != 0 {
+		device.Odometer = vehicleInfoParams.Response.VehicleState.Odometer
+		position.Odometer = vehicleInfoParams.Response.VehicleState.Odometer
+	}
+	device.Status = vehicleInfoParams.Response.State
+	device.Speed = vehicleInfoParams.Response.DriveState.Speed
+	position.Speed = vehicleInfoParams.Response.DriveState.Speed
+	position.DeviceTime = time.Now()
+
+	fmt.Println("debug1=>", device)
+	if device.Latitude != 0 {
+		err = model.UpdateDeviceInfoByVin(device)
+		if err != nil {
+			return err
+		}
+
+		err = model.AddPositionInfo(position, vin)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

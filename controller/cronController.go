@@ -8,16 +8,14 @@ import (
 
 func CronJobs() {
 	checkDeviceCreditTicker := time.NewTicker(1 * time.Minute)
-	minuteTicker := time.NewTicker(10 * time.Minute)
-	// hourTicker := time.NewTicker(1 * time.Hour)
+	hourTicker := time.NewTicker(1 * time.Minute)
 	go func() {
 		for {
 			select {
 			case <-checkDeviceCreditTicker.C:
 				go checkDeviceCredit()
-			case <-minuteTicker.C:
-				// go safeJob()
-				fmt.Println("run sec")
+			case <-hourTicker.C:
+				handleUnsupportedDevice()
 			}
 		}
 	}()
@@ -33,7 +31,18 @@ func checkDeviceCredit() {
 		tesla_stream := ConnectDevice(vins, device.AccessToken, device.RefreshToken)
 		model.UpdateDeviceTeslaStreambyVin(device.Vin, tesla_stream)
 		if tesla_stream == 1 {
+			UpdateUnSupportedDeviceInfo(device.Vin, device.AccessToken)
+		}
+	}
+}
 
+func handleUnsupportedDevice() {
+	var devices []model.Device
+	devices, _ = model.GetDevicesByTeslaStream(1)
+	for _, device := range devices {
+		err := UpdateUnSupportedDeviceInfo(device.Vin, device.AccessToken)
+		if err != nil {
+			fmt.Println("debug2=>", err)
 		}
 	}
 }
