@@ -62,27 +62,29 @@ type DeviceInfoParams struct {
 	ShareStatus  map[string]bool `json:"checkStatus"`
 }
 
-type ChargeState struct {
-	BatteryLevel float64 `json:"battery_level"`
-}
-
 type VehicleInfoParams struct {
-	Color         string      `json:"color"`
-	VehicleID     int         `json:"vehicle_id"`
-	State         string      `json:"state"`
-	ChargeState   ChargeState `json:"charge_state"`
-	VehicleConfig struct {
-		CarType string `json:"car_type"`
-	} `json:"vehicle_config"`
-	DriveState struct {
-		Latitude  float64 `json:"active_route_latitude"`
-		Longitude float64 `json:"active_route_longitude"`
-		Speed     int     `json:"speed"`
-	} `json:"drive_state"`
-	VehicleState struct {
-		CarVersion string  `json:"car_version"`
-		Odometer   float64 `json:"odometer"`
-	} `json:"vehicle_state"`
+	Data struct {
+		Response struct {
+			Color       string `json:"color"`
+			VehicleID   int    `json:"vehicle_id"`
+			State       string `json:"state"`
+			ChargeState struct {
+				BatteryLevel float64 `json:"battery_level"`
+			} `json:"charge_state"`
+			VehicleConfig struct {
+				CarType string `json:"car_type"`
+			} `json:"vehicle_config"`
+			DriveState struct {
+				Latitude  float64 `json:"active_route_latitude"`
+				Longitude float64 `json:"active_route_longitude"`
+				Speed     int     `json:"speed"`
+			} `json:"drive_state"`
+			VehicleState struct {
+				CarVersion string  `json:"car_version"`
+				Odometer   float64 `json:"odometer"`
+			} `json:"vehicle_state"`
+		} `json:"response"`
+	} `json:"data"`
 }
 
 type Payload struct {
@@ -663,18 +665,18 @@ func UpdateDeviceInfo(c *gin.Context) {
 			body, _ := io.ReadAll(resp.Body)
 
 			var vehicleInfoParams VehicleInfoParams
-			var wrappedJSON = `{"response":` + string(body) + `}`
+			var wrappedJSON = `{"data":` + string(body) + `}`
 			json.Unmarshal([]byte(wrappedJSON), &vehicleInfoParams)
 
 			// Populate VehicleInfo
 			vehicleInfo := VehicleInfo{
 				Vin:         device.Vin,
-				CarType:     vehicleInfoParams.VehicleConfig.CarType,
+				CarType:     vehicleInfoParams.Data.Response.VehicleConfig.CarType,
 				DeviceName:  device.DeviceName,
-				VehicleID:   strconv.Itoa(vehicleInfoParams.VehicleID),
+				VehicleID:   strconv.Itoa(vehicleInfoParams.Data.Response.VehicleID),
 				ShareAbi:    deviceInfoParams.ShareStatus["abi_insurance"],
 				ShareTintAi: deviceInfoParams.ShareStatus["tint_ai"],
-				Color:       vehicleInfoParams.Color,
+				Color:       vehicleInfoParams.Data.Response.Color,
 			}
 
 			deviceList = append(deviceList, vehicleInfo)
@@ -774,34 +776,34 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 	body, _ := io.ReadAll(resp.Body)
 
 	var vehicleInfoParams VehicleInfoParams
-	var wrappedJSON = `{"response":` + string(body) + `}`
+	var wrappedJSON = `{"data":` + string(body) + `}`
 	err = json.Unmarshal([]byte(wrappedJSON), &vehicleInfoParams)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Battery Level:", vehicleInfoParams.ChargeState)
+	fmt.Printf("Battery Level:", vehicleInfoParams.Data.Response.ChargeState)
 
 	var device model.Device
 	var position model.Position
 	device.Vin = vin
 	if device.BatteryLevel != 0 {
-		device.BatteryLevel = vehicleInfoParams.ChargeState.BatteryLevel
-		position.BatteryLevel = vehicleInfoParams.ChargeState.BatteryLevel
+		device.BatteryLevel = vehicleInfoParams.Data.Response.ChargeState.BatteryLevel
+		position.BatteryLevel = vehicleInfoParams.Data.Response.ChargeState.BatteryLevel
 	}
 	if device.Latitude != 0 && device.Longitude != 0 {
-		device.Latitude = vehicleInfoParams.DriveState.Latitude
-		device.Longitude = vehicleInfoParams.DriveState.Longitude
-		position.Latitude = vehicleInfoParams.DriveState.Latitude
-		position.Longitude = vehicleInfoParams.DriveState.Longitude
+		device.Latitude = vehicleInfoParams.Data.Response.DriveState.Latitude
+		device.Longitude = vehicleInfoParams.Data.Response.DriveState.Longitude
+		position.Latitude = vehicleInfoParams.Data.Response.DriveState.Latitude
+		position.Longitude = vehicleInfoParams.Data.Response.DriveState.Longitude
 	}
 	if device.Odometer != 0 {
-		device.Odometer = vehicleInfoParams.VehicleState.Odometer
-		position.Odometer = vehicleInfoParams.VehicleState.Odometer
+		device.Odometer = vehicleInfoParams.Data.Response.VehicleState.Odometer
+		position.Odometer = vehicleInfoParams.Data.Response.VehicleState.Odometer
 	}
-	device.Status = vehicleInfoParams.State
-	device.Speed = vehicleInfoParams.DriveState.Speed
-	position.Speed = vehicleInfoParams.DriveState.Speed
+	device.Status = vehicleInfoParams.Data.Response.State
+	device.Speed = vehicleInfoParams.Data.Response.DriveState.Speed
+	position.Speed = vehicleInfoParams.Data.Response.DriveState.Speed
 	position.DeviceTime = time.Now()
 
 	fmt.Println("debug1=>", device)
