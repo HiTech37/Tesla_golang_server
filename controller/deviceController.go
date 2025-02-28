@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	config "tesla_server/config"
+	"tesla_server/model"
 	"tesla_server/utils"
 	"time"
 
@@ -660,13 +661,8 @@ func UpdateDeviceInfo(c *gin.Context) {
 			body, _ := io.ReadAll(resp.Body)
 
 			var vehicleInfoParams VehicleInfoParams
-			if err := json.Unmarshal(body, &vehicleInfoParams); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"msg":   "Error parsing vehicle data",
-					"error": err.Error(),
-				})
-				return
-			}
+			var wrappedJSON = `{"response":` + string(body) + `}`
+			json.Unmarshal([]byte(wrappedJSON), &vehicleInfoParams)
 
 			// Populate VehicleInfo
 			vehicleInfo := VehicleInfo{
@@ -776,51 +772,46 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 	body, _ := io.ReadAll(resp.Body)
 
 	var vehicleInfoParams VehicleInfoParams
-	// if err := json.Unmarshal(body, &vehicleInfoParams); err != nil {
-	// 	return err
-	// }
 	var wrappedJSON = `{"response":` + string(body) + `}`
 	err = json.Unmarshal([]byte(wrappedJSON), &vehicleInfoParams)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Unmarshalled Struct: %+v\n", vehicleInfoParams)
+	var device model.Device
+	var position model.Position
+	device.Vin = vin
+	if device.BatteryLevel != 0 {
+		device.BatteryLevel = vehicleInfoParams.ChargeState.BatteryLevel
+		position.BatteryLevel = vehicleInfoParams.ChargeState.BatteryLevel
+	}
+	if device.Latitude != 0 && device.Longitude != 0 {
+		device.Latitude = vehicleInfoParams.DriveState.Latitude
+		device.Longitude = vehicleInfoParams.DriveState.Longitude
+		position.Latitude = vehicleInfoParams.DriveState.Latitude
+		position.Longitude = vehicleInfoParams.DriveState.Longitude
+	}
+	if device.Odometer != 0 {
+		device.Odometer = vehicleInfoParams.VehicleState.Odometer
+		position.Odometer = vehicleInfoParams.VehicleState.Odometer
+	}
+	device.Status = vehicleInfoParams.State
+	device.Speed = vehicleInfoParams.DriveState.Speed
+	position.Speed = vehicleInfoParams.DriveState.Speed
+	position.DeviceTime = time.Now()
 
-	// var device model.Device
-	// var position model.Position
-	// device.Vin = vin
-	// if device.BatteryLevel != 0 {
-	// 	device.BatteryLevel = vehicleInfoParams.Response.ChargeState.BatteryLevel
-	// 	position.BatteryLevel = vehicleInfoParams.Response.ChargeState.BatteryLevel
-	// }
-	// if device.Latitude != 0 && device.Longitude != 0 {
-	// 	device.Latitude = vehicleInfoParams.Response.DriveState.Latitude
-	// 	device.Longitude = vehicleInfoParams.Response.DriveState.Longitude
-	// 	position.Latitude = vehicleInfoParams.Response.DriveState.Latitude
-	// 	position.Longitude = vehicleInfoParams.Response.DriveState.Longitude
-	// }
-	// if device.Odometer != 0 {
-	// 	device.Odometer = vehicleInfoParams.Response.VehicleState.Odometer
-	// 	position.Odometer = vehicleInfoParams.Response.VehicleState.Odometer
-	// }
-	// device.Status = vehicleInfoParams.Response.State
-	// device.Speed = vehicleInfoParams.Response.DriveState.Speed
-	// position.Speed = vehicleInfoParams.Response.DriveState.Speed
-	// position.DeviceTime = time.Now()
+	fmt.Println("debug1=>", device)
+	if device.Latitude != 0 {
+		err = model.UpdateDeviceInfoByVin(device)
+		if err != nil {
+			return err
+		}
 
-	// fmt.Println("debug1=>", device)
-	// if device.Latitude != 0 {
-	// 	err = model.UpdateDeviceInfoByVin(device)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-
-	// 	err = model.AddPositionInfo(position, vin)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
+		err = model.AddPositionInfo(position, vin)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
