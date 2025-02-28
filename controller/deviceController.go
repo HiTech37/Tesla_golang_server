@@ -778,7 +778,7 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 		return err
 	}
 
-	fmt.Printf("Battery Level: %v\n", vehicleInfoParams.ChargeState.BatteryLevel)
+	fmt.Printf("Battery Level:", vehicleInfoParams.ChargeState)
 
 	var device model.Device
 	var position model.Position
