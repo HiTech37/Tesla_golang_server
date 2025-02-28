@@ -782,9 +782,6 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 		return err
 	}
 
-	fmt.Printf("DATA", vehicleInfoParams)
-	fmt.Printf("Battery Level:%f\n", vehicleInfoParams.Data.Response.ChargeState.BatteryLevel)
-
 	var device model.Device
 	var position model.Position
 	device.Vin = vin
@@ -807,6 +804,8 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 	position.Speed = vehicleInfoParams.Data.Response.DriveState.Speed
 	position.DeviceTime = time.Now()
 
+	fmt.Println("debug1=>", device)
+	fmt.Println("debug2=>", position)
 	if device.Latitude != 0 {
 		err = model.UpdateDeviceInfoByVin(device)
 		if err != nil {
