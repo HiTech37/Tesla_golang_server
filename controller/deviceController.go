@@ -62,26 +62,24 @@ type DeviceInfoParams struct {
 }
 
 type VehicleInfoParams struct {
-	Response struct {
-		Color       string `json:"color"`
-		VehicleID   int    `json:"vehicle_id"`
-		State       string `json:"state"`
-		ChargeState struct {
-			BatteryLevel float64 `json:"battery_level"`
-		} `json:"charge_state"`
-		VehicleConfig struct {
-			CarType string `json:"car_type"`
-		} `json:"vehicle_config"`
-		DriveState struct {
-			Latitude  float64 `json:"active_route_latitude"`
-			Longitude float64 `json:"active_route_longitude"`
-			Speed     int     `json:"speed"`
-		} `json:"drive_state"`
-		VehicleState struct {
-			CarVersion string  `json:"car_version"`
-			Odometer   float64 `json:"odometer"`
-		} `json:"vehicle_state"`
-	} `json:"response"`
+	Color       string `json:"color"`
+	VehicleID   int    `json:"vehicle_id"`
+	State       string `json:"state"`
+	ChargeState struct {
+		BatteryLevel float64 `json:"battery_level"`
+	} `json:"charge_state"`
+	VehicleConfig struct {
+		CarType string `json:"car_type"`
+	} `json:"vehicle_config"`
+	DriveState struct {
+		Latitude  float64 `json:"active_route_latitude"`
+		Longitude float64 `json:"active_route_longitude"`
+		Speed     int     `json:"speed"`
+	} `json:"drive_state"`
+	VehicleState struct {
+		CarVersion string  `json:"car_version"`
+		Odometer   float64 `json:"odometer"`
+	} `json:"vehicle_state"`
 }
 
 type Payload struct {
@@ -673,12 +671,12 @@ func UpdateDeviceInfo(c *gin.Context) {
 			// Populate VehicleInfo
 			vehicleInfo := VehicleInfo{
 				Vin:         device.Vin,
-				CarType:     vehicleInfoParams.Response.VehicleConfig.CarType,
+				CarType:     vehicleInfoParams.VehicleConfig.CarType,
 				DeviceName:  device.DeviceName,
-				VehicleID:   strconv.Itoa(vehicleInfoParams.Response.VehicleID),
+				VehicleID:   strconv.Itoa(vehicleInfoParams.VehicleID),
 				ShareAbi:    deviceInfoParams.ShareStatus["abi_insurance"],
 				ShareTintAi: deviceInfoParams.ShareStatus["tint_ai"],
-				Color:       vehicleInfoParams.Response.Color,
+				Color:       vehicleInfoParams.Color,
 			}
 
 			deviceList = append(deviceList, vehicleInfo)
@@ -777,16 +775,17 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 
 	body, _ := io.ReadAll(resp.Body)
 
-	// var vehicleInfoParams VehicleInfoParams
+	var vehicleInfoParams VehicleInfoParams
 	// if err := json.Unmarshal(body, &vehicleInfoParams); err != nil {
 	// 	return err
 	// }
-
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(body, &raw); err != nil {
+	var wrappedJSON = `{"response":` + string(body) + `}`
+	err = json.Unmarshal([]byte(wrappedJSON), &vehicleInfoParams)
+	if err != nil {
 		return err
 	}
-	fmt.Println("Raw Response:", string(raw["response"]))
+
+	fmt.Printf("Unmarshalled Struct: %+v\n", vehicleInfoParams)
 
 	// var device model.Device
 	// var position model.Position
