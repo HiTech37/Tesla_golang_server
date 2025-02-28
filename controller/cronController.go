@@ -40,6 +40,7 @@ func handleUnsupportedDevice() {
 	var devices []model.Device
 	devices, _ = model.GetDevicesByTeslaStream(1)
 	for _, device := range devices {
+		fmt.Println("debug3=>", device.Vin)
 		err := UpdateUnSupportedDeviceInfo(device.Vin, device.AccessToken)
 		if err != nil {
 			fmt.Println("debug2=>", err)
