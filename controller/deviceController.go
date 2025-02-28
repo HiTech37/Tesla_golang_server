@@ -724,3 +724,53 @@ func UpdateDeviceInfo(c *gin.Context) {
 		"msg":  "done!",
 	})
 }
+
+func HandleUnSupportedDeviceInfo(vin string, accessToken string) error {
+	base := config.GetTeslaCredential().ProxyUri
+	url := fmt.Sprintf(base+"/api/1/vehicles/%s/vehicle_data", vin)
+
+	certPEM := config.GetTeslaCredential().Certificate
+
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+		log.Fatal("Failed to append certificate")
+	}
+
+	// Create a custom TLS configuration that uses the certificate pool.
+	tlsConfig := &tls.Config{
+		RootCAs:    certPool,
+		ServerName: config.GetTeslaCredential().ServerDomain,
+	}
+
+	// Create an HTTP client that uses this TLS configuration.
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error making request:", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	var vehicleInfoParams VehicleInfoParams
+	if err := json.Unmarshal(body, &vehicleInfoParams); err != nil {
+		return err
+	}
+
+	return nil
+}

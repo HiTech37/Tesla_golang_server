@@ -74,11 +74,23 @@ func GetDevicesByTeslaStream(tesla_stream int) ([]Device, error) {
 	}
 
 	var devices []Device
-	result := db.Where(" deviceType = ? AND tesla_stream = ? AND ((credit > 2 * monthly_cost) OR (billing_source = ? AND credit <= 0) OR (is_paid = ?))",
+	result := db.Where(`
+    deviceType = ? 
+    AND tesla_stream = ? 
+    AND (
+        credit <= 2 * monthly_cost 
+        AND (
+            (billing_source = ? AND credit > 0) 
+            OR (billing_source != ? AND is_paid = ?)
+        )
+    )`,
 		"tesla",
 		tesla_stream,
 		"escrow",
-		0).Find(&devices)
+		"escrow",
+		1,
+	).Find(&devices)
+
 	if result.Error != nil {
 		return nil, result.Error
 	}

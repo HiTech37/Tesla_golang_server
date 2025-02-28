@@ -256,7 +256,3 @@ func GetAllVehicles(c *gin.Context) {
 		return
 	}
 }
-
-func GetAccessToken(refreshToken string) {
-
-}

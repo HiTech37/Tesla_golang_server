@@ -32,5 +32,8 @@ func checkDeviceCredit() {
 		vins = append(vins, device.Vin)
 		tesla_stream := ConnectDevice(vins, device.AccessToken, device.RefreshToken)
 		model.UpdateDeviceTeslaStreambyVin(device.Vin, tesla_stream)
+		if tesla_stream == 1 {
+
+		}
 	}
 }
