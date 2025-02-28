@@ -783,22 +783,22 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 	}
 
 	fmt.Printf("DATA", vehicleInfoParams)
-	fmt.Printf("Battery Level:", vehicleInfoParams.Data.Response.ChargeState.BatteryLevel)
+	fmt.Printf("Battery Level:%f\n", vehicleInfoParams.Data.Response.ChargeState.BatteryLevel)
 
 	var device model.Device
 	var position model.Position
 	device.Vin = vin
-	if device.BatteryLevel != 0 {
+	if vehicleInfoParams.Data.Response.ChargeState.BatteryLevel != 0 {
 		device.BatteryLevel = vehicleInfoParams.Data.Response.ChargeState.BatteryLevel
 		position.BatteryLevel = vehicleInfoParams.Data.Response.ChargeState.BatteryLevel
 	}
-	if device.Latitude != 0 && device.Longitude != 0 {
+	if vehicleInfoParams.Data.Response.DriveState.Latitude != 0 && vehicleInfoParams.Data.Response.DriveState.Longitude != 0 {
 		device.Latitude = vehicleInfoParams.Data.Response.DriveState.Latitude
 		device.Longitude = vehicleInfoParams.Data.Response.DriveState.Longitude
 		position.Latitude = vehicleInfoParams.Data.Response.DriveState.Latitude
 		position.Longitude = vehicleInfoParams.Data.Response.DriveState.Longitude
 	}
-	if device.Odometer != 0 {
+	if vehicleInfoParams.Data.Response.VehicleState.Odometer != 0 {
 		device.Odometer = vehicleInfoParams.Data.Response.VehicleState.Odometer
 		position.Odometer = vehicleInfoParams.Data.Response.VehicleState.Odometer
 	}
