@@ -807,7 +807,6 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 	position.Speed = vehicleInfoParams.Data.Response.DriveState.Speed
 	position.DeviceTime = time.Now()
 
-	fmt.Println("debug1=>", device)
 	if device.Latitude != 0 {
 		err = model.UpdateDeviceInfoByVin(device)
 		if err != nil {
