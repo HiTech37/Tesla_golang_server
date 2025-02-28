@@ -62,13 +62,15 @@ type DeviceInfoParams struct {
 	ShareStatus  map[string]bool `json:"checkStatus"`
 }
 
+type ChargeState struct {
+	BatteryLevel float64 `json:"battery_level"`
+}
+
 type VehicleInfoParams struct {
-	Color       string `json:"color"`
-	VehicleID   int    `json:"vehicle_id"`
-	State       string `json:"state"`
-	ChargeState struct {
-		BatteryLevel float64 `json:"battery_level"`
-	} `json:"charge_state"`
+	Color         string      `json:"color"`
+	VehicleID     int         `json:"vehicle_id"`
+	State         string      `json:"state"`
+	ChargeState   ChargeState `json:"charge_state"`
 	VehicleConfig struct {
 		CarType string `json:"car_type"`
 	} `json:"vehicle_config"`
