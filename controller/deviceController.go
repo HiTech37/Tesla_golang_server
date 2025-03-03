@@ -783,26 +783,19 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 	}
 
 	var device model.Device
-	var position model.Position
 	device.Vin = vin
 	if vehicleInfoParams.Data.Response.ChargeState.BatteryLevel != 0 {
 		device.BatteryLevel = vehicleInfoParams.Data.Response.ChargeState.BatteryLevel
-		position.BatteryLevel = vehicleInfoParams.Data.Response.ChargeState.BatteryLevel
 	}
 	if vehicleInfoParams.Data.Response.DriveState.Latitude != 0 && vehicleInfoParams.Data.Response.DriveState.Longitude != 0 {
 		device.Latitude = vehicleInfoParams.Data.Response.DriveState.Latitude
 		device.Longitude = vehicleInfoParams.Data.Response.DriveState.Longitude
-		position.Latitude = vehicleInfoParams.Data.Response.DriveState.Latitude
-		position.Longitude = vehicleInfoParams.Data.Response.DriveState.Longitude
 	}
 	if vehicleInfoParams.Data.Response.VehicleState.Odometer != 0 {
 		device.Odometer = vehicleInfoParams.Data.Response.VehicleState.Odometer
-		position.Odometer = vehicleInfoParams.Data.Response.VehicleState.Odometer
 	}
 	device.Status = vehicleInfoParams.Data.Response.State
 	device.Speed = vehicleInfoParams.Data.Response.DriveState.Speed
-	position.Speed = vehicleInfoParams.Data.Response.DriveState.Speed
-	position.DeviceTime = time.Now()
 
 	if device.Latitude != 0 {
 		err = model.UpdateDeviceInfoByVin(device)
@@ -810,7 +803,7 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 			return err
 		}
 
-		err = model.AddPositionInfo(position, vin)
+		err = model.AddPositionInfo(vin, time.Now())
 		if err != nil {
 			return err
 		}

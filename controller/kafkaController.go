@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"tesla_server/model"
+	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
@@ -59,12 +60,11 @@ func KafkaConsumer() {
 			}
 
 			// Parse datetime
-			// createdAt := time.Now()
-			// createdAt, err = time.Parse(time.RFC3339, telemetryData.CreatedAt)
-			// if err != nil {
-			// 	log.Printf("Failed to parse datetime: %s", err)
-			// 	continue
-			// }
+			createdAt, err := time.Parse(time.RFC3339, telemetryData.CreatedAt)
+			if err != nil {
+				log.Printf("Failed to parse datetime: %s", err)
+				continue
+			}
 
 			// Initialize variables to capture telemetry values
 			var latitude, longitude, batteryLevel, odometer, vehicleSpeed float64
@@ -100,7 +100,7 @@ func KafkaConsumer() {
 				fmt.Println(err)
 			}
 
-			err = model.AddPositionInfo(vin)
+			err = model.AddPositionInfo(vin, createdAt)
 			if err != nil {
 				fmt.Println(err)
 			}
