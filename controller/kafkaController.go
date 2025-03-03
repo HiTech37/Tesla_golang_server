@@ -28,7 +28,7 @@ type TelemetryData struct {
 
 func KafkaConsumer() {
 	config := &kafka.ConfigMap{
-		"bootstrap.servers": "54.161.235.213:9093",
+		"bootstrap.servers": "https://localhost:9093",
 		"group.id":          "telemetry",
 		"auto.offset.reset": "earliest",
 		"message.max.bytes": 524288000,
