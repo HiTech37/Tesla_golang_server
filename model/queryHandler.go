@@ -139,7 +139,7 @@ func UpdateDeviceInfoByVin(deviceInfo Device) error {
 
 }
 
-func UpdateDeviceByVin(deviceInfo Device) error {
+func UpdateDeviceByVin(deviceInfo Device, isSpeedUpdated bool) error {
 	db, err := config.InitDb()
 	if err != nil {
 		return err
@@ -152,6 +152,9 @@ func UpdateDeviceByVin(deviceInfo Device) error {
 	}
 
 	// Update only the fields that are set (non-zero values)
+	if isSpeedUpdated && deviceInfo.Speed == 0 {
+		deviceInfo.Speed = 0
+	}
 	deviceInfo.LastConnect = time.Now()
 	deviceInfo.LastPosition = time.Now()
 	deviceInfo.Status = "online"

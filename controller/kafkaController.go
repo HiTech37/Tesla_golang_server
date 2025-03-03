@@ -70,6 +70,7 @@ func KafkaConsumer() {
 			var latitude, longitude, batteryLevel, odometer, vehicleSpeed float64
 			var vin string
 
+			var isSpeedUpdated bool = false
 			// Extract data
 			vin = telemetryData.Vin
 
@@ -83,6 +84,7 @@ func KafkaConsumer() {
 				case "Odometer":
 					odometer = item.Value.DoubleValue
 				case "VehicleSpeed":
+					isSpeedUpdated = true
 					vehicleSpeed = item.Value.DoubleValue
 				}
 			}
@@ -93,10 +95,9 @@ func KafkaConsumer() {
 			device.Longitude = longitude
 			device.Odometer = odometer
 			device.Speed = int(vehicleSpeed)
-			fmt.Println("=>", device)
 			device.Vin = vin
 
-			err = model.UpdateDeviceByVin(device)
+			err = model.UpdateDeviceByVin(device, isSpeedUpdated)
 			if err != nil {
 				fmt.Println(err)
 			}
