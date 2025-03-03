@@ -244,22 +244,22 @@ func ConnectDevice(vins []string, accessToken string, refreshToken string) int {
 				fieldToStream1: {
 					ResendIntervalSeconds: 3600,
 					MinimumDelta:          1,
-					IntervalSeconds:       60,
+					IntervalSeconds:       6,
 				},
 				fieldToStream2: {
 					ResendIntervalSeconds: 3600,
 					MinimumDelta:          1,
-					IntervalSeconds:       60,
+					IntervalSeconds:       6,
 				},
 				fieldToStream3: {
 					ResendIntervalSeconds: 3600,
 					MinimumDelta:          1,
-					IntervalSeconds:       60,
+					IntervalSeconds:       6,
 				},
 				fieldToStream4: {
 					ResendIntervalSeconds: 3600,
 					MinimumDelta:          1,
-					IntervalSeconds:       60,
+					IntervalSeconds:       6,
 				},
 			},
 			CA:       config.GetTeslaCredential().Certificate,
