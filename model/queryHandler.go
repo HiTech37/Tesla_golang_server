@@ -180,17 +180,19 @@ func AddPositionInfo(vin string, createdAt time.Time) error {
 	}
 
 	var position Position
-	position.DeviceId = int(device.ID)
-	position.BatteryLevel = device.BatteryLevel
-	position.Latitude = device.Latitude
-	position.Longitude = device.Longitude
-	position.Odometer = device.Odometer
-	position.Speed = device.Speed
-	position.DeviceTime = createdAt
-	position.CreatedAt = time.Now()
-	position.UpdatedAt = time.Now()
-	if err := db.Create(&position).Error; err != nil {
-		return err
+	if device.Latitude != 0 && device.Longitude != 0 {
+		position.Latitude = device.Latitude
+		position.Longitude = device.Longitude
+		position.DeviceId = int(device.ID)
+		position.BatteryLevel = device.BatteryLevel
+		position.Odometer = device.Odometer
+		position.Speed = device.Speed
+		position.DeviceTime = createdAt
+		position.CreatedAt = time.Now()
+		position.UpdatedAt = time.Now()
+		if err := db.Create(&position).Error; err != nil {
+			return err
+		}
 	}
 
 	return nil
