@@ -18,7 +18,7 @@ type Device struct {
 	TeslaStream   int       `json:"tesla_stream"`
 	Latitude      float64   `json:"latitude"`
 	Longitude     float64   `json:"longitude"`
-	Speed         int       `json:"speed"`
+	Speed         int       `json:"speed" gorm:"column:speed"`
 	BatteryLevel  float64   `json:"batteryLevel" gorm:"column:mt2v_dc_volt"`
 	PrevOdometer  float64   `json:"prevOdometer" gorm:"column:prev_od"`
 	Odometer      float64   `json:"odometer"`
@@ -31,7 +31,7 @@ type Position struct {
 	DeviceId     int       `json:"deviceId" gorm:"column:deviceId"`
 	Latitude     float64   `json:"latitude"`
 	Longitude    float64   `json:"longitude"`
-	Speed        int       `json:"speed"`
+	Speed        int       `json:"speed" gorm:"column:speed"`
 	BatteryLevel float64   `json:"batteryLevel" gorm:"column:mt2v_dc_volt"`
 	Odometer     float64   `json:"odometer"`
 	DeviceTime   time.Time `json:"deviceTime" gorm:"column:deviceTime"`

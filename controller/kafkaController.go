@@ -102,20 +102,14 @@ func KafkaConsumer() {
 
 			var device model.Device
 			var position model.Position
-			if batteryLevel != 0 {
-				device.BatteryLevel = batteryLevel
-				position.BatteryLevel = batteryLevel
-			}
-			if latitude != 0 && longitude != 0 {
-				device.Latitude = latitude
-				position.Latitude = latitude
-				device.Longitude = longitude
-				position.Longitude = longitude
-			}
-			if odometer != 0 {
-				device.Odometer = odometer
-				position.Odometer = odometer
-			}
+			device.BatteryLevel = batteryLevel
+			position.BatteryLevel = batteryLevel
+			device.Latitude = latitude
+			position.Latitude = latitude
+			device.Longitude = longitude
+			position.Longitude = longitude
+			device.Odometer = odometer
+			position.Odometer = odometer
 			device.Speed = int(vehicleSpeed)
 			position.Speed = int(vehicleSpeed)
 			device.Vin = vin
