@@ -10,18 +10,6 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
-// TelemetryTesla represents the database entity
-type TelemetryTesla struct {
-	ID                uint      `gorm:"primaryKey"`
-	LocationLatitude  float64   `json:"location_latitude"`
-	LocationLongitude float64   `json:"location_longitude"`
-	BatteryLevel      float64   `json:"battery_level"`
-	Odometer          float64   `json:"odometer"`
-	VehicleSpeed      float64   `json:"vehicle_speed"`
-	Vin               string    `json:"vin"`
-	CreatedAt         time.Time `json:"createdAt"`
-}
-
 // TelemetryData represents the incoming JSON structure
 type TelemetryData struct {
 	CreatedAt string `json:"createdAt"`
@@ -29,7 +17,7 @@ type TelemetryData struct {
 	Data      []struct {
 		Key   string `json:"key"`
 		Value struct {
-			DoubleValue   float64 `json:"doubleValue"`
+			DoubleValue   float64 `json:"doubleValue,omitempty"`
 			LocationValue struct {
 				Latitude  float64 `json:"latitude"`
 				Longitude float64 `json:"longitude"`
@@ -97,6 +85,7 @@ func KafkaConsumer() {
 					odometer = item.Value.DoubleValue
 				case "VehicleSpeed":
 					vehicleSpeed = item.Value.DoubleValue
+					fmt.Printf("Extracted VehicleSpeed: %f", vehicleSpeed)
 				}
 			}
 
