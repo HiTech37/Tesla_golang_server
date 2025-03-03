@@ -136,6 +136,8 @@ func UpdateDeviceInfoByVin(deviceInfo Device) error {
 		return err
 	}
 
+	db.Model(&existingDevice).Select("Speed").Updates(Device{Speed: deviceInfo.Speed})
+
 	return nil
 
 }
