@@ -242,22 +242,22 @@ func ConnectDevice(vins []string, accessToken string, refreshToken string) int {
 			AlertTypes:  []string{"service"},
 			Fields: map[string]FieldConfig{
 				fieldToStream1: {
-					ResendIntervalSeconds: 3600,
+					ResendIntervalSeconds: 60,
 					MinimumDelta:          1,
 					IntervalSeconds:       6,
 				},
 				fieldToStream2: {
-					ResendIntervalSeconds: 3600,
+					ResendIntervalSeconds: 60,
 					MinimumDelta:          1,
 					IntervalSeconds:       6,
 				},
 				fieldToStream3: {
-					ResendIntervalSeconds: 3600,
+					ResendIntervalSeconds: 60,
 					MinimumDelta:          1,
 					IntervalSeconds:       6,
 				},
 				fieldToStream4: {
-					ResendIntervalSeconds: 3600,
+					ResendIntervalSeconds: 60,
 					MinimumDelta:          1,
 					IntervalSeconds:       6,
 				},
