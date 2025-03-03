@@ -168,7 +168,7 @@ func UpdateDeviceByVin(deviceInfo Device) error {
 
 }
 
-func AddPositionInfo(position Position, vin string) error {
+func AddPositionInfo(vin string) error {
 	db, err := config.InitDb()
 	if err != nil {
 		return err
@@ -179,7 +179,13 @@ func AddPositionInfo(position Position, vin string) error {
 		return err
 	}
 
+	var position Position
 	position.DeviceId = int(device.ID)
+	position.BatteryLevel = device.BatteryLevel
+	position.Latitude = device.Latitude
+	position.Longitude = device.Longitude
+	position.Odometer = device.Odometer
+	position.Speed = device.Speed
 	position.CreatedAt = time.Now()
 	position.UpdatedAt = time.Now()
 	if err := db.Create(&position).Error; err != nil {

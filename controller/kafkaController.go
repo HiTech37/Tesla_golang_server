@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"tesla_server/model"
-	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
@@ -60,12 +59,12 @@ func KafkaConsumer() {
 			}
 
 			// Parse datetime
-			createdAt := time.Now()
-			createdAt, err = time.Parse(time.RFC3339, telemetryData.CreatedAt)
-			if err != nil {
-				log.Printf("Failed to parse datetime: %s", err)
-				continue
-			}
+			// createdAt := time.Now()
+			// createdAt, err = time.Parse(time.RFC3339, telemetryData.CreatedAt)
+			// if err != nil {
+			// 	log.Printf("Failed to parse datetime: %s", err)
+			// 	continue
+			// }
 
 			// Initialize variables to capture telemetry values
 			var latitude, longitude, batteryLevel, odometer, vehicleSpeed float64
@@ -85,37 +84,25 @@ func KafkaConsumer() {
 					odometer = item.Value.DoubleValue
 				case "VehicleSpeed":
 					vehicleSpeed = item.Value.DoubleValue
-					fmt.Printf("Extracted VehicleSpeed: %f", vehicleSpeed)
 				}
 			}
 
 			var device model.Device
-			var position model.Position
 			device.BatteryLevel = batteryLevel
-			position.BatteryLevel = batteryLevel
 			device.Latitude = latitude
-			position.Latitude = latitude
 			device.Longitude = longitude
-			position.Longitude = longitude
 			device.Odometer = odometer
-			position.Odometer = odometer
 			device.Speed = int(vehicleSpeed)
-			position.Speed = int(vehicleSpeed)
 			device.Vin = vin
 
-			if latitude != 0 && longitude != 0 {
-				fmt.Println("debug=>", device.Speed)
-				fmt.Println("debug=>", position.Speed)
-				err = model.UpdateDeviceByVin(device)
-				if err != nil {
-					fmt.Println(err)
-				}
+			err = model.UpdateDeviceByVin(device)
+			if err != nil {
+				fmt.Println(err)
+			}
 
-				position.DeviceTime = createdAt
-				err = model.AddPositionInfo(position, vin)
-				if err != nil {
-					fmt.Println(err)
-				}
+			err = model.AddPositionInfo(vin)
+			if err != nil {
+				fmt.Println(err)
 			}
 
 		} else {
