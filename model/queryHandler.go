@@ -83,11 +83,12 @@ func GetDevicesByTeslaStream(tesla_stream int) ([]Device, error) {
         OR 
         (billing_source != ? AND is_paid = ?)
     ) 
-    AND tesla_stream >= 0`,
+    AND tesla_stream = ?`,
 		"tesla",
 		"escrow",
 		"escrow",
 		1,
+		tesla_stream,
 	).Find(&devices)
 
 	if result.Error != nil {
