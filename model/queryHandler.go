@@ -152,9 +152,6 @@ func UpdateDeviceByVin(deviceInfo Device, isSpeedUpdated bool) error {
 	}
 
 	// Update only the fields that are set (non-zero values)
-	if isSpeedUpdated && deviceInfo.Speed == 0 {
-		deviceInfo.Speed = 0
-	}
 	deviceInfo.LastConnect = time.Now()
 	deviceInfo.LastPosition = time.Now()
 	deviceInfo.Status = "online"
@@ -165,6 +162,10 @@ func UpdateDeviceByVin(deviceInfo Device, isSpeedUpdated bool) error {
 	// Update the record
 	if err := db.Model(&existingDevice).Updates(deviceInfo).Error; err != nil {
 		return err
+	}
+
+	if isSpeedUpdated {
+		db.Model(&existingDevice).Select("Speed").Updates(Device{Speed: deviceInfo.Speed})
 	}
 
 	return nil
