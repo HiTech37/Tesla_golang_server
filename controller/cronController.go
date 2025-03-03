@@ -8,7 +8,7 @@ import (
 
 func CronJobs() {
 	checkDeviceCreditTicker := time.NewTicker(1 * time.Minute)
-	hourTicker := time.NewTicker(1 * time.Minute)
+	hourTicker := time.NewTicker(10 * time.Second) // set back into one hour
 	go func() {
 		for {
 			select {
