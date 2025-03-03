@@ -115,6 +115,8 @@ func KafkaConsumer() {
 			device.Vin = vin
 
 			if latitude != 0 && longitude != 0 {
+				fmt.Println("debug=>", device.Speed)
+				fmt.Println("debug=>", position.Speed)
 				err = model.UpdateDeviceByVin(device)
 				if err != nil {
 					fmt.Println(err)
