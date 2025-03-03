@@ -797,7 +797,8 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 	device.Status = vehicleInfoParams.Data.Response.State
 	device.Speed = vehicleInfoParams.Data.Response.DriveState.Speed
 
-	if device.Latitude != 0 {
+	fmt.Println("=>", device)
+	if device.Latitude != 0 && device.Longitude != 0 {
 		err = model.UpdateDeviceInfoByVin(device)
 		if err != nil {
 			return err
