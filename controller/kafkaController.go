@@ -93,6 +93,7 @@ func KafkaConsumer() {
 			device.Longitude = longitude
 			device.Odometer = odometer
 			device.Speed = int(vehicleSpeed)
+			fmt.Println("=>", device)
 			device.Vin = vin
 
 			err = model.UpdateDeviceByVin(device)
