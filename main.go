@@ -15,12 +15,12 @@ func main() {
 	r.Static("/.well-known", "./static/.well-known")
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://test.moovetrax.com", "http://localhost:3000", "https://moovetrax.com"}, // Allow all origins
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},                                                 // Allow these HTTP methods
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},                                      // Allow these headers
+		AllowOrigins:     []string{"https://test.moovetrax.com", "http://localhost:3000", "https://moovetrax.com", "https://fleetapi.moovetrax.com"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,           // Allow cookies and HTTP authentication
-		MaxAge:           12 * time.Hour, // Cache preflight requests for 12 hours
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
 	}))
 
 	go controller.KafkaConsumer()
