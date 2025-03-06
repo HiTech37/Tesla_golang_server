@@ -20,6 +20,7 @@ import (
 
 type RequestConnectParams struct {
 	Vins         []string `json:"vins"`
+	Vin          string   `json:"vin"`
 	AccessToken  string   `json:"accessToken"`
 	RefreshToken string   `json:"refreshToken"`
 }
@@ -202,6 +203,71 @@ func ConnectDeviceforTest(c *gin.Context) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
 
 	// client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Error making request:",
+			"error": err,
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	var jsonData map[string]interface{}
+	json.Unmarshal([]byte(string(body)), &jsonData)
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg":  "done!",
+		"data": jsonData,
+	})
+}
+
+func SuspendDevice(c *gin.Context) {
+	var requestParams RequestConnectParams
+	if err := c.ShouldBindJSON(&requestParams); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	base := config.GetTeslaCredential().ProxyUri
+	url := fmt.Sprintf("%s/api/1/vehicles/%s/fleet_telemetry_config", base, requestParams.Vin)
+
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Error creating request:",
+			"error": err,
+		})
+		return
+	}
+
+	certPEM := config.GetTeslaCredential().Certificate
+
+	// Create a certificate pool and add your certificate.
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+		log.Fatal("Failed to append certificate")
+	}
+
+	// Create a custom TLS configuration that uses the certificate pool.
+	tlsConfig := &tls.Config{
+		RootCAs:    certPool,
+		ServerName: config.GetTeslaCredential().ServerDomain,
+	}
+
+	// Create an HTTP client that uses this TLS configuration.
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
+
 	resp, err := client.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

@@ -80,13 +80,14 @@ func HandleCommand(c *gin.Context) {
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"data": req,
+			"msg":  "done",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": resData,
-		"test": "test",
+		"msg":  "done",
 	})
 }
 
@@ -106,7 +107,8 @@ func SendCommand(url string, accessToken string) (string, error) {
 
 	// Create a custom TLS configuration
 	tlsConfig := &tls.Config{
-		RootCAs: caCertPool,
+		RootCAs:    caCertPool,
+		ServerName: config.GetTeslaCredential().ServerDomain,
 	}
 
 	client := &http.Client{

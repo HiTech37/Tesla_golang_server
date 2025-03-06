@@ -31,6 +31,7 @@ func main() {
 	r.GET("/api/getAllVehichles", controller.GetAllVehicles)
 	r.POST("/api/sendCommand", controller.HandleCommand)
 	r.POST("/api/connectServer", controller.ConnectDeviceforTest)
+	r.POST("/api/suspendDevice", controller.SuspendDevice)
 	r.POST("/api/getConfigStatus", controller.GetDeviceConfigStatus)
 	r.POST("/api/getFleetTelemetryError", controller.GetFleetTelemetryError)
 	r.POST("/api/getFleetStatus", controller.GetFleetStatus)
