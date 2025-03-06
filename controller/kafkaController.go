@@ -107,6 +107,11 @@ func KafkaConsumer() {
 				fmt.Println(err)
 			}
 
+			err = model.UpdateHandshake(vin)
+			if err != nil {
+				fmt.Println(err)
+			}
+
 		} else {
 			fmt.Printf("Consumer error: %v (%v)\n", err, msg)
 		}

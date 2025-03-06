@@ -1,6 +1,10 @@
 package model
 
 import (
+	"fmt"
+	"io"
+	"net"
+	"net/http"
 	"tesla_server/config"
 	"time"
 )
@@ -203,4 +207,60 @@ func AddPositionInfo(vin string, createdAt time.Time) error {
 	}
 
 	return nil
+}
+
+func UpdateHandshake(vin string) error {
+	db, err := config.InitDb()
+	if err != nil {
+		return err
+	}
+
+	upload_ip := getPrivateIP()
+	upload_public_ip := getPublicIP()
+	device_ip := ""
+	device_port := ""
+
+	query := `INSERT INTO handshakes (gps_id, upload_ip, upload_public_ip, device_ip, device_port, handshake_cnt, createdAt, updatedAt)
+              VALUES (?, ?, ?, ?, ?, 0, NOW(), NOW())
+              ON DUPLICATE KEY UPDATE handshake_cnt = handshake_cnt + 1, updatedAt = NOW();`
+
+	result := db.Exec(query, vin, upload_ip, upload_public_ip, device_ip, device_port)
+	if result.Error != nil {
+		return fmt.Errorf("failed to execute query: %v", result.Error)
+	}
+
+	return nil
+
+}
+
+func getPrivateIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return ""
+}
+
+func getPublicIP() string {
+	resp, err := http.Get("https://checkip.amazonaws.com")
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+
+	ip, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ""
+	}
+
+	return string(ip)
 }

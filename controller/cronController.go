@@ -22,6 +22,7 @@ func CronJobs() {
 }
 
 func checkDeviceCredit() {
+	fmt.Println("Checking the deivce credit......")
 	var devices []model.Device
 	devices, _ = model.GetDevicesByTeslaStream(0)
 	var vins []string
@@ -37,6 +38,7 @@ func checkDeviceCredit() {
 }
 
 func handleUnsupportedDevice() {
+	fmt.Println("Handling Unsupported device......")
 	var devices []model.Device
 	devices, _ = model.GetDevicesByTeslaStream(1)
 	for _, device := range devices {
