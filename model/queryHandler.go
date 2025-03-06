@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"strings"
 	"tesla_server/config"
 	"time"
 )
@@ -262,5 +263,5 @@ func getPublicIP() string {
 		return ""
 	}
 
-	return string(ip)
+	return strings.TrimSpace(string(ip))
 }

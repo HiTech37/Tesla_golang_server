@@ -30,9 +30,15 @@ func checkDeviceCredit() {
 		vins = nil
 		vins = append(vins, device.Vin)
 		tesla_stream := ConnectDevice(vins, device.AccessToken, device.RefreshToken)
-		model.UpdateDeviceTeslaStreambyVin(device.Vin, tesla_stream)
+		err := model.UpdateDeviceTeslaStreambyVin(device.Vin, tesla_stream)
+		if err != nil {
+			fmt.Println(err)
+		}
 		if tesla_stream == 1 {
-			UpdateUnSupportedDeviceInfo(device.Vin, device.AccessToken)
+			err := UpdateUnSupportedDeviceInfo(device.Vin, device.AccessToken)
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
 }
