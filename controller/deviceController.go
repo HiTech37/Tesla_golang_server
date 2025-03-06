@@ -233,9 +233,76 @@ func SuspendDevice(c *gin.Context) {
 	}
 
 	base := config.GetTeslaCredential().ProxyUri
-	url := fmt.Sprintf("%s/api/1/vehicles/%s/fleet_telemetry_config", base, requestParams.Vin)
+	path := "/api/1/vehicles/fleet_telemetry_config"
+	url := fmt.Sprintf("%s%s", base, path)
 
-	req, err := http.NewRequest("DELETE", url, nil)
+	fieldToStream1 := "Location"
+	fieldToStream2 := "BatteryLevel"
+	fieldToStream3 := "VehicleSpeed"
+	fieldToStream4 := "Odometer"
+
+	telemetryData := TelemetryRequest{
+		Config: Config{
+			PreferTyped: true,
+			Port:        8443,
+			Exp:         1770670000,
+			AlertTypes:  []string{"service"},
+			Fields: map[string]FieldConfig{
+				fieldToStream1: {
+					ResendIntervalSeconds: 99999999990,
+					MinimumDelta:          1,
+					IntervalSeconds:       99999999990,
+				},
+				fieldToStream2: {
+					ResendIntervalSeconds: 99999999990,
+					MinimumDelta:          1,
+					IntervalSeconds:       99999999990,
+				},
+				fieldToStream3: {
+					ResendIntervalSeconds: 99999999990,
+					MinimumDelta:          1,
+					IntervalSeconds:       99999999990,
+				},
+				fieldToStream4: {
+					ResendIntervalSeconds: 99999999990,
+					MinimumDelta:          1,
+					IntervalSeconds:       99999999990,
+				},
+			},
+			CA:       config.GetTeslaCredential().Certificate,
+			Hostname: config.GetTeslaCredential().ServerDomain,
+		},
+		Vins: requestParams.Vins,
+	}
+
+	payload, err := json.Marshal(telemetryData)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":   "Failed to marshal JSON data:",
+			"error": err,
+		})
+		return
+	}
+
+	certPEM := config.GetTeslaCredential().Certificate
+
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+		log.Fatal("Failed to append certificate")
+	}
+
+	tlsConfig := &tls.Config{
+		RootCAs:    certPool,
+		ServerName: config.GetTeslaCredential().ServerDomain,
+	}
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg":   "Error creating request:",
@@ -244,30 +311,10 @@ func SuspendDevice(c *gin.Context) {
 		return
 	}
 
-	certPEM := config.GetTeslaCredential().Certificate
-
-	// Create a certificate pool and add your certificate.
-	certPool := x509.NewCertPool()
-	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
-		log.Fatal("Failed to append certificate")
-	}
-
-	// Create a custom TLS configuration that uses the certificate pool.
-	tlsConfig := &tls.Config{
-		RootCAs:    certPool,
-		ServerName: config.GetTeslaCredential().ServerDomain,
-	}
-
-	// Create an HTTP client that uses this TLS configuration.
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: tlsConfig,
-		},
-	}
-
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
 
+	// client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -288,6 +335,71 @@ func SuspendDevice(c *gin.Context) {
 		"data": jsonData,
 	})
 }
+
+// func SuspendDevice(c *gin.Context) {
+// 	var requestParams RequestConnectParams
+// 	if err := c.ShouldBindJSON(&requestParams); err != nil {
+// 		fmt.Println(err.Error())
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	base := config.GetTeslaCredential().ProxyUri
+// 	url := fmt.Sprintf("%s/api/1/vehicles/%s/fleet_telemetry_config", base, requestParams.Vin)
+
+// 	req, err := http.NewRequest("DELETE", url, nil)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{
+// 			"msg":   "Error creating request:",
+// 			"error": err,
+// 		})
+// 		return
+// 	}
+
+// 	certPEM := config.GetTeslaCredential().Certificate
+
+// 	// Create a certificate pool and add your certificate.
+// 	certPool := x509.NewCertPool()
+// 	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+// 		log.Fatal("Failed to append certificate")
+// 	}
+
+// 	// Create a custom TLS configuration that uses the certificate pool.
+// 	tlsConfig := &tls.Config{
+// 		RootCAs:    certPool,
+// 		ServerName: config.GetTeslaCredential().ServerDomain,
+// 	}
+
+// 	// Create an HTTP client that uses this TLS configuration.
+// 	client := &http.Client{
+// 		Transport: &http.Transport{
+// 			TLSClientConfig: tlsConfig,
+// 		},
+// 	}
+
+// 	req.Header.Set("Content-Type", "application/json")
+// 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestParams.AccessToken))
+
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{
+// 			"msg":   "Error making request:",
+// 			"error": err,
+// 		})
+// 		return
+// 	}
+// 	defer resp.Body.Close()
+
+// 	body, _ := io.ReadAll(resp.Body)
+
+// 	var jsonData map[string]interface{}
+// 	json.Unmarshal([]byte(string(body)), &jsonData)
+
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"msg":  "done!",
+// 		"data": jsonData,
+// 	})
+// }
 
 func ConnectDevice(vins []string, accessToken string, refreshToken string) int {
 
