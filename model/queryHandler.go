@@ -3,7 +3,6 @@ package model
 import (
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"strings"
 	"tesla_server/config"
@@ -216,7 +215,8 @@ func UpdateHandshake(vin string) error {
 		return err
 	}
 
-	upload_ip := getPrivateIP()
+	upload_ip, _ := getPrivateIP()
+	fmt.Println("Private IP: ", upload_ip)
 	upload_public_ip := getPublicIP()
 	device_ip := ""
 	device_port := ""
@@ -234,21 +234,46 @@ func UpdateHandshake(vin string) error {
 
 }
 
-func getPrivateIP() string {
-	addrs, err := net.InterfaceAddrs()
+func getPrivateIP() (string, error) {
+	tokenURL := "http://169.254.169.254/latest/api/token"
+	client := &http.Client{}
+	req, err := http.NewRequest("PUT", tokenURL, nil)
 	if err != nil {
-		fmt.Println(err)
-		return ""
+		return "", err
+	}
+	req.Header.Set("X-aws-ec2-metadata-token-ttl-seconds", "21600")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	token, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
 	}
 
-	for _, addr := range addrs {
-		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
-			}
-		}
+	// Step 2: Get the Private IP using the Token
+	metaURL := "http://169.254.169.254/latest/meta-data/local-ipv4"
+	req, err = http.NewRequest("GET", metaURL, nil)
+	if err != nil {
+		return "", err
 	}
-	return ""
+	req.Header.Set("X-aws-ec2-metadata-token", strings.TrimSpace(string(token)))
+
+	resp, err = client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	privateIP, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(privateIP)), nil
 }
 
 func getPublicIP() string {

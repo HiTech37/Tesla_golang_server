@@ -64,28 +64,26 @@ type DeviceInfoParams struct {
 }
 
 type VehicleInfoParams struct {
-	Data struct {
-		Response struct {
-			Color       string `json:"color"`
-			VehicleID   int    `json:"vehicle_id"`
-			State       string `json:"state"`
-			ChargeState struct {
-				BatteryLevel float64 `json:"battery_level"`
-			} `json:"charge_state"`
-			VehicleConfig struct {
-				CarType string `json:"car_type"`
-			} `json:"vehicle_config"`
-			DriveState struct {
-				Latitude  float64 `json:"active_route_latitude"`
-				Longitude float64 `json:"active_route_longitude"`
-				Speed     int     `json:"speed"`
-			} `json:"drive_state"`
-			VehicleState struct {
-				CarVersion string  `json:"car_version"`
-				Odometer   float64 `json:"odometer"`
-			} `json:"vehicle_state"`
-		} `json:"response"`
-	} `json:"data"`
+	Response struct {
+		Color       string `json:"color"`
+		VehicleID   int    `json:"vehicle_id"`
+		State       string `json:"state"`
+		ChargeState struct {
+			BatteryLevel float64 `json:"battery_level"`
+		} `json:"charge_state"`
+		VehicleConfig struct {
+			CarType string `json:"car_type"`
+		} `json:"vehicle_config"`
+		DriveState struct {
+			Latitude  float64 `json:"latitude"`
+			Longitude float64 `json:"longitude"`
+			Speed     int     `json:"speed"`
+		} `json:"drive_state"`
+		VehicleState struct {
+			CarVersion string  `json:"car_version"`
+			Odometer   float64 `json:"odometer"`
+		} `json:"vehicle_state"`
+	} `json:"response"`
 }
 
 type Payload struct {
@@ -798,7 +796,7 @@ func UpdateDeviceInfo(c *gin.Context) {
 	for _, device := range deviceInfoParams.DeviceList {
 		if device.Vin != "" {
 			base := config.GetTeslaCredential().ProxyUri
-			url := fmt.Sprintf(base+"/api/1/vehicles/%s/vehicle_data", device.Vin)
+			url := fmt.Sprintf("%s/api/1/vehicles/%s/vehicle_data?endpoints=location_data%3Bcharge_state%3Bvehicle_state", base, device.Vin)
 
 			certPEM := config.GetTeslaCredential().Certificate
 			certPool := x509.NewCertPool()
@@ -839,22 +837,20 @@ func UpdateDeviceInfo(c *gin.Context) {
 				return
 			}
 			defer resp.Body.Close()
-
 			body, _ := io.ReadAll(resp.Body)
 
 			var vehicleInfoParams VehicleInfoParams
-			var wrappedJSON = `{"data":` + string(body) + `}`
-			json.Unmarshal([]byte(wrappedJSON), &vehicleInfoParams)
+			json.Unmarshal(body, &vehicleInfoParams)
 
 			// Populate VehicleInfo
 			vehicleInfo := VehicleInfo{
 				Vin:         device.Vin,
-				CarType:     vehicleInfoParams.Data.Response.VehicleConfig.CarType,
+				CarType:     vehicleInfoParams.Response.VehicleConfig.CarType,
 				DeviceName:  device.DeviceName,
-				VehicleID:   strconv.Itoa(vehicleInfoParams.Data.Response.VehicleID),
+				VehicleID:   strconv.Itoa(vehicleInfoParams.Response.VehicleID),
 				ShareAbi:    deviceInfoParams.ShareStatus["abi_insurance"],
 				ShareTintAi: deviceInfoParams.ShareStatus["tint_ai"],
-				Color:       vehicleInfoParams.Data.Response.Color,
+				Color:       vehicleInfoParams.Response.Color,
 			}
 
 			deviceList = append(deviceList, vehicleInfo)
@@ -913,7 +909,7 @@ func UpdateDeviceInfo(c *gin.Context) {
 
 func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 	base := config.GetTeslaCredential().ProxyUri
-	url := fmt.Sprintf(base+"/api/1/vehicles/%s/vehicle_data", vin)
+	url := fmt.Sprintf("%s/api/1/vehicles/%s/vehicle_data?endpoints=location_data%3Bcharge_state%3Bvehicle_state", base, vin)
 
 	certPEM := config.GetTeslaCredential().Certificate
 
@@ -953,27 +949,29 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 
 	body, _ := io.ReadAll(resp.Body)
 
+	fmt.Println("resp=>", string(body))
+
 	var vehicleInfoParams VehicleInfoParams
-	var wrappedJSON = `{"data":` + string(body) + `}`
-	err = json.Unmarshal([]byte(wrappedJSON), &vehicleInfoParams)
+	err = json.Unmarshal(body, &vehicleInfoParams)
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("resp=>", vehicleInfoParams)
 	var device model.Device
 	device.Vin = vin
-	if vehicleInfoParams.Data.Response.ChargeState.BatteryLevel != 0 {
-		device.BatteryLevel = vehicleInfoParams.Data.Response.ChargeState.BatteryLevel
+	if vehicleInfoParams.Response.ChargeState.BatteryLevel != 0 {
+		device.BatteryLevel = vehicleInfoParams.Response.ChargeState.BatteryLevel
 	}
-	if vehicleInfoParams.Data.Response.DriveState.Latitude != 0 && vehicleInfoParams.Data.Response.DriveState.Longitude != 0 {
-		device.Latitude = vehicleInfoParams.Data.Response.DriveState.Latitude
-		device.Longitude = vehicleInfoParams.Data.Response.DriveState.Longitude
+	if vehicleInfoParams.Response.DriveState.Latitude != 0 && vehicleInfoParams.Response.DriveState.Longitude != 0 {
+		device.Latitude = vehicleInfoParams.Response.DriveState.Latitude
+		device.Longitude = vehicleInfoParams.Response.DriveState.Longitude
 	}
-	if vehicleInfoParams.Data.Response.VehicleState.Odometer != 0 {
-		device.Odometer = vehicleInfoParams.Data.Response.VehicleState.Odometer
+	if vehicleInfoParams.Response.VehicleState.Odometer != 0 {
+		device.Odometer = vehicleInfoParams.Response.VehicleState.Odometer
 	}
-	device.Status = vehicleInfoParams.Data.Response.State
-	device.Speed = vehicleInfoParams.Data.Response.DriveState.Speed
+	device.Status = vehicleInfoParams.Response.State
+	device.Speed = vehicleInfoParams.Response.DriveState.Speed
 
 	fmt.Println("=>", device)
 	if device.Latitude != 0 && device.Longitude != 0 {
@@ -986,6 +984,7 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 		if err != nil {
 			return err
 		}
+		model.UpdateHandshake(vin)
 	}
 
 	return nil
