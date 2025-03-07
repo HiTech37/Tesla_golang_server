@@ -147,3 +147,4 @@ curl -v --cacert /etc/cert/moovetrax-fullchain.crt \
     --cert cert.pem \
     --key key.pem \
     https://fleetapi.moovetrax.com:8443
+ 
