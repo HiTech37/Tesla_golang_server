@@ -216,7 +216,6 @@ func UpdateHandshake(vin string) error {
 	}
 
 	upload_ip, _ := getPrivateIP()
-	fmt.Println("Private IP: ", upload_ip)
 	upload_public_ip := getPublicIP()
 	device_ip := ""
 	device_port := ""
@@ -254,7 +253,6 @@ func getPrivateIP() (string, error) {
 		return "", err
 	}
 
-	// Step 2: Get the Private IP using the Token
 	metaURL := "http://169.254.169.254/latest/meta-data/local-ipv4"
 	req, err = http.NewRequest("GET", metaURL, nil)
 	if err != nil {
