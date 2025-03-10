@@ -8,7 +8,7 @@ import (
 
 func CronJobs() {
 	checkDeviceCreditTicker := time.NewTicker(1 * time.Minute)
-	hourTicker := time.NewTicker(60 * time.Second)
+	hourTicker := time.NewTicker(10 * time.Second)
 	go func() {
 		for {
 			select {
@@ -48,6 +48,7 @@ func handleUnsupportedDevice() {
 	var devices []model.Device
 	devices, _ = model.GetDevicesByTeslaStream(1)
 	for _, device := range devices {
+		fmt.Println("devices=>", device.Vin)
 		err := UpdateUnSupportedDeviceInfo(device.Vin, device.AccessToken)
 		if err != nil {
 			fmt.Println(err)
