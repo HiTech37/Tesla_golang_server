@@ -908,7 +908,8 @@ func UpdateDeviceInfo(c *gin.Context) {
 }
 
 func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
-	base := config.GetTeslaCredential().ProxyUri
+	// base := config.GetTeslaCredential().ProxyUri
+	base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
 	url := fmt.Sprintf("%s/api/1/vehicles/%s/vehicle_data?endpoints=location_data%3Bcharge_state%3Bvehicle_state", base, vin)
 
 	certPEM := config.GetTeslaCredential().Certificate
