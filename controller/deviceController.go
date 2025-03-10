@@ -797,7 +797,11 @@ func UpdateDeviceInfo(c *gin.Context) {
 	for _, device := range deviceInfoParams.DeviceList {
 		if device.Vin != "" {
 			base := config.GetTeslaCredential().ProxyUri
-			url := fmt.Sprintf("%s/api/1/vehicles/%s/vehicle_data?endpoints=location_data%3Bcharge_state%3Bvehicle_state", base, device.Vin)
+
+			params := url.Values{}
+			params.Add("endpoints", "location_data;charge_state;vehicle_state")
+
+			url := fmt.Sprintf("%s/api/1/vehicles/%s/vehicle_data?%s", base, device.Vin, params.Encode())
 
 			certPEM := config.GetTeslaCredential().Certificate
 			certPool := x509.NewCertPool()
@@ -909,8 +913,8 @@ func UpdateDeviceInfo(c *gin.Context) {
 }
 
 func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
-	// base := config.GetTeslaCredential().ProxyUri
-	base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
+	base := config.GetTeslaCredential().ProxyUri
+	// base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
 	params := url.Values{}
 	params.Add("endpoints", "location_data;charge_state;vehicle_state")
 
