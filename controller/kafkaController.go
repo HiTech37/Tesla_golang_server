@@ -1,8 +1,11 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"tesla_server/model"
+	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
@@ -44,73 +47,73 @@ func KafkaConsumer() {
 	}
 
 	fmt.Println("Kafka consumer is running...")
-	// for {
-	// 	msg, err := consumer.ReadMessage(-1)
-	// 	if err == nil {
-	// 		fmt.Printf("Message on %s: %s\n", msg.TopicPartition, string(msg.Value))
+	for {
+		msg, err := consumer.ReadMessage(-1)
+		if err == nil {
+			fmt.Printf("Message on %s: %s\n", msg.TopicPartition, string(msg.Value))
 
-	// 		var telemetryData TelemetryData
-	// 		err := json.Unmarshal(msg.Value, &telemetryData)
-	// 		if err != nil {
-	// 			log.Printf("Failed to parse JSON: %s", err)
-	// 			continue
-	// 		}
+			var telemetryData TelemetryData
+			err := json.Unmarshal(msg.Value, &telemetryData)
+			if err != nil {
+				log.Printf("Failed to parse JSON: %s", err)
+				continue
+			}
 
-	// 		// Parse datetime
-	// 		createdAt, err := time.Parse(time.RFC3339, telemetryData.CreatedAt)
-	// 		if err != nil {
-	// 			log.Printf("Failed to parse datetime: %s", err)
-	// 			continue
-	// 		}
+			// Parse datetime
+			createdAt, err := time.Parse(time.RFC3339, telemetryData.CreatedAt)
+			if err != nil {
+				log.Printf("Failed to parse datetime: %s", err)
+				continue
+			}
 
-	// 		// Initialize variables to capture telemetry values
-	// 		var latitude, longitude, batteryLevel, odometer, vehicleSpeed float64
-	// 		var vin string
+			// Initialize variables to capture telemetry values
+			var latitude, longitude, batteryLevel, odometer, vehicleSpeed float64
+			var vin string
 
-	// 		var isSpeedUpdated bool = false
-	// 		// Extract data
-	// 		vin = telemetryData.Vin
+			var isSpeedUpdated bool = false
+			// Extract data
+			vin = telemetryData.Vin
 
-	// 		for _, item := range telemetryData.Data {
-	// 			switch item.Key {
-	// 			case "Location":
-	// 				latitude = item.Value.LocationValue.Latitude
-	// 				longitude = item.Value.LocationValue.Longitude
-	// 			case "BatteryLevel":
-	// 				batteryLevel = item.Value.DoubleValue
-	// 			case "Odometer":
-	// 				odometer = item.Value.DoubleValue
-	// 			case "VehicleSpeed":
-	// 				isSpeedUpdated = true
-	// 				vehicleSpeed = item.Value.DoubleValue
-	// 			}
-	// 		}
+			for _, item := range telemetryData.Data {
+				switch item.Key {
+				case "Location":
+					latitude = item.Value.LocationValue.Latitude
+					longitude = item.Value.LocationValue.Longitude
+				case "BatteryLevel":
+					batteryLevel = item.Value.DoubleValue
+				case "Odometer":
+					odometer = item.Value.DoubleValue
+				case "VehicleSpeed":
+					isSpeedUpdated = true
+					vehicleSpeed = item.Value.DoubleValue
+				}
+			}
 
-	// 		var device model.Device
-	// 		device.BatteryLevel = batteryLevel
-	// 		device.Latitude = latitude
-	// 		device.Longitude = longitude
-	// 		device.Odometer = odometer
-	// 		device.Speed = int(vehicleSpeed)
-	// 		device.Vin = vin
+			var device model.Device
+			device.BatteryLevel = batteryLevel
+			device.Latitude = latitude
+			device.Longitude = longitude
+			device.Odometer = odometer
+			device.Speed = int(vehicleSpeed)
+			device.Vin = vin
 
-	// 		err = model.UpdateDeviceByVin(device, isSpeedUpdated)
-	// 		if err != nil {
-	// 			fmt.Println(err)
-	// 		}
+			err = model.UpdateDeviceByVin(device, isSpeedUpdated)
+			if err != nil {
+				fmt.Println(err)
+			}
 
-	// 		err = model.AddPositionInfo(vin, createdAt)
-	// 		if err != nil {
-	// 			fmt.Println(err)
-	// 		}
+			err = model.AddPositionInfo(vin, createdAt)
+			if err != nil {
+				fmt.Println(err)
+			}
 
-	// 		err = model.UpdateHandshake(vin)
-	// 		if err != nil {
-	// 			fmt.Println(err)
-	// 		}
+			err = model.UpdateHandshake(vin)
+			if err != nil {
+				fmt.Println(err)
+			}
 
-	// 	} else {
-	// 		fmt.Printf("Consumer error: %v (%v)\n", err, msg)
-	// 	}
-	// }
+		} else {
+			fmt.Printf("Consumer error: %v (%v)\n", err, msg)
+		}
+	}
 }
