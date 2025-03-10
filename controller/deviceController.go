@@ -793,32 +793,32 @@ func UpdateDeviceInfo(c *gin.Context) {
 	var payload Payload
 	payload.ShareInfo = make(map[string]bool) // Initialize ShareInfo map
 	var deviceList []VehicleInfo
+	fmt.Println("updatedeviceStart=>")
 
 	for _, device := range deviceInfoParams.DeviceList {
 		if device.Vin != "" {
 			base := config.GetTeslaCredential().ProxyUri
+			// base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
 
 			params := url.Values{}
 			params.Add("endpoints", "location_data;charge_state;vehicle_state")
-
 			url := fmt.Sprintf("%s/api/1/vehicles/%s/vehicle_data?%s", base, device.Vin, params.Encode())
 
-			certPEM := config.GetTeslaCredential().Certificate
-			certPool := x509.NewCertPool()
-			if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
-				log.Fatal("Failed to append certificate")
-			}
+			// certPEM := config.GetTeslaCredential().Certificate
+			// certPool := x509.NewCertPool()
+			// if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+			// 	log.Fatal("Failed to append certificate")
+			// }
 
-			// TLS Configuration
-			tlsConfig := &tls.Config{
-				RootCAs:    certPool,
-				ServerName: config.GetTeslaCredential().ServerDomain,
-			}
+			// tlsConfig := &tls.Config{
+			// 	RootCAs:    certPool,
+			// 	ServerName: config.GetTeslaCredential().ServerDomain,
+			// }
 
 			client := &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: tlsConfig,
-				},
+				// Transport: &http.Transport{
+				// 	TLSClientConfig: tlsConfig,
+				// },
 			}
 
 			req, err := http.NewRequest("GET", url, nil)
@@ -862,6 +862,7 @@ func UpdateDeviceInfo(c *gin.Context) {
 		}
 	}
 
+	fmt.Println("deviceList=>", deviceList)
 	// Populate Payload
 	payload.AccessToken = deviceInfoParams.AccessToken
 	payload.RefreshToken = deviceInfoParams.RefreshToken
@@ -920,24 +921,23 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 
 	url := fmt.Sprintf("%s/api/1/vehicles/%s/vehicle_data?%s", base, vin, params.Encode())
 
-	certPEM := config.GetTeslaCredential().Certificate
+	// certPEM := config.GetTeslaCredential().Certificate
+	// certPool := x509.NewCertPool()
+	// if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
+	// 	log.Fatal("Failed to append certificate")
+	// }
 
-	certPool := x509.NewCertPool()
-	if ok := certPool.AppendCertsFromPEM([]byte(certPEM)); !ok {
-		log.Fatal("Failed to append certificate")
-	}
-
-	// Create a custom TLS configuration that uses the certificate pool.
-	tlsConfig := &tls.Config{
-		RootCAs:    certPool,
-		ServerName: config.GetTeslaCredential().ServerDomain,
-	}
+	// // Create a custom TLS configuration that uses the certificate pool.
+	// tlsConfig := &tls.Config{
+	// 	RootCAs:    certPool,
+	// 	ServerName: config.GetTeslaCredential().ServerDomain,
+	// }
 
 	// Create an HTTP client that uses this TLS configuration.
 	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: tlsConfig,
-		},
+		// Transport: &http.Transport{
+		// 	TLSClientConfig: tlsConfig,
+		// },
 	}
 
 	req, err := http.NewRequest("GET", url, nil)
