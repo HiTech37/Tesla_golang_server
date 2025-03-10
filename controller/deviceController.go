@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	config "tesla_server/config"
 	"tesla_server/model"
@@ -910,7 +911,10 @@ func UpdateDeviceInfo(c *gin.Context) {
 func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 	// base := config.GetTeslaCredential().ProxyUri
 	base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
-	url := fmt.Sprintf("%s/api/1/vehicles/%s/vehicle_data?endpoints=location_data%3Bcharge_state%3Bvehicle_state", base, vin)
+	params := url.Values{}
+	params.Add("endpoints", "location_data;charge_state;vehicle_state")
+
+	url := fmt.Sprintf("%s/api/1/vehicles/%s/vehicle_data?%s", base, vin, params.Encode())
 
 	certPEM := config.GetTeslaCredential().Certificate
 
