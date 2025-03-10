@@ -51,7 +51,8 @@ g+nCMaavadk/8KExFVxQTkdyPLjZDQM2+VkReuzu9GteonN+zGa7cuVo
 	teslaCredential.Certificate = certificate
 	teslaCredential.ServerDomain = "fleetapi.moovetrax.com"
 	teslaCredential.Port = 8443
-	teslaCredential.ProxyUri = "https://192.168.32.5:4443"
+	// teslaCredential.ProxyUri = "https://192.168.32.5:4443"
+	teslaCredential.ProxyUri = "https://localhost:4443"
 
 	teslaCredential.TestServerUri = "https://test.moovetrax.com:8088"
 
