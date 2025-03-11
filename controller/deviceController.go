@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	config "tesla_server/config"
 	"tesla_server/model"
 	"tesla_server/utils"
@@ -913,7 +914,7 @@ func UpdateDeviceInfo(c *gin.Context) {
 	})
 }
 
-func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
+func UpdateUnSupportedDeviceInfo(vin string, accessToken string, refreshToken string) error {
 	base := config.GetTeslaCredential().ProxyUri
 	// base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
 	params := url.Values{}
@@ -957,8 +958,15 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
+	bodyStr := strings.TrimSpace(string(body))
 
-	fmt.Println("resp=>", string(body))
+	if strings.Contains(bodyStr, "token expired (401)") {
+		_, err := utils.RefreshAuthToken(refreshToken, vin)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+	}
 
 	var vehicleInfoParams VehicleInfoParams
 	err = json.Unmarshal(body, &vehicleInfoParams)
@@ -966,7 +974,6 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 		return err
 	}
 
-	fmt.Println("resp=>", vehicleInfoParams)
 	var device model.Device
 	device.Vin = vin
 	if vehicleInfoParams.Response.ChargeState.BatteryLevel != 0 {
@@ -982,7 +989,6 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string) error {
 	device.Status = vehicleInfoParams.Response.State
 	device.Speed = vehicleInfoParams.Response.DriveState.Speed
 
-	fmt.Println("=>", device)
 	if device.Latitude != 0 && device.Longitude != 0 {
 		err = model.UpdateDeviceInfoByVin(device)
 		if err != nil {

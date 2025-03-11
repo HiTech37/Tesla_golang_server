@@ -35,7 +35,7 @@ func checkDeviceCredit() {
 			fmt.Println(err)
 		}
 		if tesla_stream == 1 {
-			err := UpdateUnSupportedDeviceInfo(device.Vin, device.AccessToken)
+			err := UpdateUnSupportedDeviceInfo(device.Vin, device.AccessToken, device.RefreshToken)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -49,7 +49,7 @@ func handleUnsupportedDevice() {
 	devices, _ = model.GetDevicesByTeslaStream(1)
 	for _, device := range devices {
 		fmt.Println("devices=>", device.Vin)
-		err := UpdateUnSupportedDeviceInfo(device.Vin, device.AccessToken)
+		err := UpdateUnSupportedDeviceInfo(device.Vin, device.AccessToken, device.RefreshToken)
 		if err != nil {
 			fmt.Println(err)
 		}
