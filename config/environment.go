@@ -51,7 +51,7 @@ DNKb0vo=
 	teslaCredential.Certificate = certificate
 	teslaCredential.ServerDomain = "fleetapi.moovetrax.com"
 	teslaCredential.Port = 8443
-	teslaCredential.ProxyUri = "https://vehicle-command-tesla_http_proxy-1:4443"
+	teslaCredential.ProxyUri = "https://fleetapi.moovetrax.com:4443"
 	// teslaCredential.ProxyUri = "https://localhost:4443"
 
 	teslaCredential.TestServerUri = "https://test.moovetrax.com:8088"
