@@ -824,6 +824,7 @@ func UpdateDeviceInfo(c *gin.Context) {
 
 			req, err := http.NewRequest("GET", url, nil)
 			if err != nil {
+				fmt.Println(err.Error())
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"msg":   "Error creating request",
 					"error": err.Error(),
@@ -836,6 +837,7 @@ func UpdateDeviceInfo(c *gin.Context) {
 
 			resp, err := client.Do(req)
 			if err != nil {
+				fmt.Println(err.Error())
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"msg":   "Error making request",
 					"error": err.Error(),
