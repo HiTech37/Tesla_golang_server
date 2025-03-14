@@ -135,17 +135,11 @@ func UpdateDeviceInfoByVin(deviceInfo Device) (bool, error) {
 	// Set the PrevOdometer to the current Odometer value
 	deviceInfo.PrevOdometer = existingDevice.Odometer
 	var isUpdated bool = true
-	if deviceInfo.Odometer == existingDevice.Odometer && deviceInfo.Latitude == existingDevice.Latitude && deviceInfo.BatteryLevel == existingDevice.BatteryLevel {
+	if deviceInfo.Latitude == existingDevice.Latitude && deviceInfo.BatteryLevel == existingDevice.BatteryLevel {
 		if deviceInfo.Longitude == existingDevice.Longitude && deviceInfo.Speed == existingDevice.Speed {
 			isUpdated = false
 		}
 	}
-
-	fmt.Println(deviceInfo.Odometer, existingDevice.Odometer)
-	fmt.Println(deviceInfo.Latitude, existingDevice.Latitude)
-	fmt.Println(deviceInfo.Longitude, existingDevice.Longitude)
-	fmt.Println(deviceInfo.BatteryLevel, existingDevice.BatteryLevel)
-	fmt.Println(deviceInfo.Speed, existingDevice.Speed)
 
 	// Update the record
 	if err := db.Model(&existingDevice).Updates(deviceInfo).Error; err != nil {
