@@ -141,6 +141,12 @@ func UpdateDeviceInfoByVin(deviceInfo Device) (bool, error) {
 		}
 	}
 
+	fmt.Println(deviceInfo.Odometer, existingDevice.Odometer)
+	fmt.Println(deviceInfo.Latitude, existingDevice.Latitude)
+	fmt.Println(deviceInfo.Longitude, existingDevice.Longitude)
+	fmt.Println(deviceInfo.BatteryLevel, existingDevice.BatteryLevel)
+	fmt.Println(deviceInfo.Speed, existingDevice.Speed)
+
 	// Update the record
 	if err := db.Model(&existingDevice).Updates(deviceInfo).Error; err != nil {
 		return false, err
