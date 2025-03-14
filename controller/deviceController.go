@@ -799,8 +799,6 @@ func UpdateDeviceInfo(c *gin.Context) {
 	for _, device := range deviceInfoParams.DeviceList {
 		if device.Vin != "" {
 			base := config.GetTeslaCredential().ProxyUri
-			// base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
-
 			params := url.Values{}
 			params.Add("endpoints", "location_data;charge_state;vehicle_state")
 			url := fmt.Sprintf("%s/api/1/vehicles/%s/vehicle_data?%s", base, device.Vin, params.Encode())
@@ -918,7 +916,6 @@ func UpdateDeviceInfo(c *gin.Context) {
 
 func UpdateUnSupportedDeviceInfo(vin string, accessToken string, refreshToken string) error {
 	base := config.GetTeslaCredential().ProxyUri
-	// base := "https://fleet-api.prd.na.vn.cloud.tesla.com"
 	params := url.Values{}
 	params.Add("endpoints", "location_data;charge_state;vehicle_state")
 
@@ -992,14 +989,16 @@ func UpdateUnSupportedDeviceInfo(vin string, accessToken string, refreshToken st
 	device.Speed = vehicleInfoParams.Response.DriveState.Speed
 
 	if device.Latitude != 0 && device.Longitude != 0 {
-		err = model.UpdateDeviceInfoByVin(device)
+		isupdated, err := model.UpdateDeviceInfoByVin(device)
 		if err != nil {
 			return err
 		}
 
-		err = model.AddPositionInfo(vin, time.Now())
-		if err != nil {
-			return err
+		if isupdated {
+			err = model.AddPositionInfo(vin, time.Now())
+			if err != nil {
+				return err
+			}
 		}
 		model.UpdateHandshake(vin)
 	}

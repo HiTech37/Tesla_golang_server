@@ -116,16 +116,16 @@ func GetDeviceByVin(vin string) ([]Device, error) {
 	return devices, nil
 }
 
-func UpdateDeviceInfoByVin(deviceInfo Device) error {
+func UpdateDeviceInfoByVin(deviceInfo Device) (bool, error) {
 	db, err := config.InitDb()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// Get the existing device record by VIN
 	var existingDevice Device
 	if err := db.Where("vin = ?", deviceInfo.Vin).First(&existingDevice).Error; err != nil {
-		return err
+		return false, err
 	}
 
 	// Update only the fields that are set (non-zero values)
@@ -134,15 +134,21 @@ func UpdateDeviceInfoByVin(deviceInfo Device) error {
 
 	// Set the PrevOdometer to the current Odometer value
 	deviceInfo.PrevOdometer = existingDevice.Odometer
+	var isUpdated bool = true
+	if deviceInfo.Odometer == existingDevice.Odometer && deviceInfo.Latitude == existingDevice.Latitude && deviceInfo.BatteryLevel == existingDevice.BatteryLevel {
+		if deviceInfo.Longitude == existingDevice.Longitude && deviceInfo.Speed == existingDevice.Speed {
+			isUpdated = false
+		}
+	}
 
 	// Update the record
 	if err := db.Model(&existingDevice).Updates(deviceInfo).Error; err != nil {
-		return err
+		return false, err
 	}
 
 	db.Model(&existingDevice).Select("Speed").Updates(Device{Speed: deviceInfo.Speed})
 
-	return nil
+	return isUpdated, nil
 
 }
 

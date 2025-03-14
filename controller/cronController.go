@@ -34,7 +34,7 @@ func checkDeviceCredit() {
 		if err != nil {
 			fmt.Println(err)
 		}
-		if tesla_stream == 1 {
+		if tesla_stream >= 1 {
 			err := UpdateUnSupportedDeviceInfo(device.Vin, device.AccessToken, device.RefreshToken)
 			if err != nil {
 				fmt.Println(err)
